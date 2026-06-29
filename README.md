@@ -2,6 +2,8 @@
 
 App mobile multi-igrejas (Expo + Supabase). PRD em [`docs/PRD.md`](docs/PRD.md).
 
+<!-- dev branch test -->
+
 ## Estrutura
 
 ```
