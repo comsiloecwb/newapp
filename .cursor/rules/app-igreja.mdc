@@ -1,0 +1,9 @@
+---
+description: Regras do App Igreja — sempre ler docs/PRD.md
+globs: **/*
+---
+
+- Multi-tenancy: todo dado de negócio tem `church_id`; RLS obrigatório.
+- Stack: Expo Router, TypeScript strict, React Query (remoto), Zustand (local).
+- Arquitetura feature-based em `src/features/`.
+- Não implementar fora do MVP em `docs/PRD.md` sem pedido explícito.
