@@ -19,7 +19,7 @@ export function EventListItem({ event }: { event: Event }) {
 
   return (
     <Link href={`/event/${event.id}`} asChild>
-      <Pressable style={[styles.row, { backgroundColor: theme.surface }]}>
+      <Pressable style={StyleSheet.flatten([styles.row, { backgroundColor: theme.surface }])}>
         <View style={styles.body}>
           <Text style={[styles.title, { color: theme.text }]}>{event.title}</Text>
           <Text style={[styles.meta, { color: theme.textMuted }]}>
