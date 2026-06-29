@@ -34,6 +34,7 @@
   },
   "devDependencies": {
     "@types/react": "~19.2.2",
+    "concurrently": "^10.0.3",
     "pg": "^8.21.0",
     "typescript": "~6.0.3"
   },
@@ -45,7 +46,8 @@
     "web": "expo start --web",
     "lint": "expo lint",
     "typecheck": "tsc --noEmit",
-    "setup:supabase": "node scripts/setup-supabase.mjs"
+    "setup:supabase": "node scripts/setup-supabase.mjs",
+    "preview": "concurrently --names \"app,ios\" --prefix-colors \"cyan,magenta\" \"expo start --web --port 8082\" \"node scripts/preview-ios.mjs\""
   },
   "private": true
 }
