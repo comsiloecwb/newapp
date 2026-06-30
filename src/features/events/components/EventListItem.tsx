@@ -4,14 +4,17 @@ import { Link } from 'expo-router';
 import { useChurchTheme } from '@/theme/ChurchThemeProvider';
 import type { Event } from '@/types/database';
 
-function formatEventDate(iso: string) {
-  return new Date(iso).toLocaleString('pt-BR', {
-    weekday: 'short',
-    day: '2-digit',
-    month: 'short',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
+function formatDay(iso: string) {
+  return new Date(iso).toLocaleDateString('pt-BR', { day: '2-digit' });
+}
+
+function formatMonth(iso: string) {
+  return new Date(iso).toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '').toUpperCase();
+}
+
+function formatTime(iso: string) {
+  const d = new Date(iso);
+  return d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 }
 
 export function EventListItem({ event }: { event: Event }) {
@@ -19,20 +22,28 @@ export function EventListItem({ event }: { event: Event }) {
 
   return (
     <Link href={`/event/${event.id}`} asChild>
-      <Pressable style={StyleSheet.flatten([styles.row, { backgroundColor: theme.surface }])}>
-        <View style={styles.body}>
-          <Text style={[styles.title, { color: theme.text }]}>{event.title}</Text>
-          <Text style={[styles.meta, { color: theme.textMuted }]}>
-            {formatEventDate(event.start_at)}
-          </Text>
-          {event.location ? (
-            <Text style={[styles.meta, { color: theme.textMuted }]}>{event.location}</Text>
-          ) : null}
+      <Pressable style={StyleSheet.flatten([styles.row, { borderBottomColor: theme.textMuted + '20' }])}>
+        {/* Date block */}
+        <View style={[styles.dateBlock, { backgroundColor: theme.cream }]}>
+          <Text style={styles.day}>{formatDay(event.start_at)}</Text>
+          <Text style={styles.month}>{formatMonth(event.start_at)}</Text>
         </View>
-        {event.is_paid ? (
-          <Text style={[styles.badge, { backgroundColor: theme.secondary }]}>Pago</Text>
-        ) : (
-          <Text style={[styles.badge, { backgroundColor: theme.primary }]}>RSVP</Text>
+
+        {/* Content */}
+        <View style={styles.body}>
+          <Text style={[styles.title, { color: theme.text, fontFamily: 'PlayfairDisplay_400Regular' }]} numberOfLines={2}>
+            {event.title}
+          </Text>
+          <Text style={[styles.meta, { color: theme.textMuted }]}>
+            {formatTime(event.start_at)}
+            {event.location ? ` · ${event.location}` : ''}
+          </Text>
+        </View>
+
+        {event.is_paid && (
+          <View style={[styles.badge, { backgroundColor: theme.accent + '18' }]}>
+            <Text style={[styles.badgeText, { color: theme.accent }]}>Pago</Text>
+          </View>
         )}
       </Pressable>
     </Link>
@@ -43,20 +54,42 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 14,
-    borderRadius: 10,
-    marginBottom: 8,
+    paddingVertical: 16,
+    gap: 16,
+    borderBottomWidth: StyleSheet.hairlineWidth,
   },
-  body: { flex: 1 },
-  title: { fontSize: 16, fontWeight: '600' },
-  meta: { fontSize: 13, marginTop: 4 },
-  badge: {
-    color: '#fff',
-    fontSize: 11,
+  dateBlock: {
+    width: 52,
+    height: 60,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  day: {
+    fontSize: 22,
     fontWeight: '700',
-    paddingHorizontal: 8,
+    color: '#1C1917',
+    lineHeight: 26,
+  },
+  month: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: '#1C1917',
+    letterSpacing: 0.8,
+  },
+  body: { flex: 1, gap: 4 },
+  title: { fontSize: 15, fontWeight: '600', lineHeight: 20 },
+  meta: { fontSize: 12, lineHeight: 16 },
+  badge: {
+    paddingHorizontal: 9,
     paddingVertical: 4,
     borderRadius: 6,
-    overflow: 'hidden',
+    flexShrink: 0,
+  },
+  badgeText: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.5,
   },
 });

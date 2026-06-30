@@ -82,7 +82,7 @@ export default function NotificationsScreen() {
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]} edges={['bottom']}>
       {hasUnread && (
         <Pressable
-          style={[styles.markAll, { borderBottomColor: theme.border }]}
+          style={[styles.markAll, { borderBottomColor: theme.elevated }]}
           onPress={() => markAllAsRead()}
           disabled={markingAll}
         >
@@ -109,7 +109,7 @@ export default function NotificationsScreen() {
             </View>
           }
           ItemSeparatorComponent={() => (
-            <View style={[styles.separator, { backgroundColor: theme.border }]} />
+            <View style={[styles.separator, { backgroundColor: theme.elevated }]} />
           )}
         />
       )}

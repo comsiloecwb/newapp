@@ -1,11 +1,27 @@
 import { Bell, Calendar, Home, User } from 'lucide-react-native';
 import { Tabs } from 'expo-router';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { useNotificationsStore } from '@/stores/notifications-store';
 import { useNotificationsSheetStore } from '@/stores/notifications-sheet-store';
+import { useAuthStore } from '@/stores/auth-store';
 import { useChurchTheme } from '@/theme/ChurchThemeProvider';
 import { NotificationsSheet } from '@/features/notifications/components/NotificationsSheet';
+
+const SERIF = 'PlayfairDisplay_500Medium';
+
+function HeaderLeft() {
+  const theme = useChurchTheme();
+  const church = useAuthStore((s) => s.church);
+  return (
+    <View style={styles.headerLeft}>
+      <Text style={[styles.star, { color: theme.text }]}>✦</Text>
+      <Text style={[styles.churchLabel, { color: theme.text, fontFamily: SERIF }]} numberOfLines={1}>
+        {church?.name ?? 'App Igreja'}
+      </Text>
+    </View>
+  );
+}
 
 function BellButton() {
   const theme = useChurchTheme();
@@ -14,9 +30,9 @@ function BellButton() {
 
   return (
     <Pressable onPress={open} style={styles.bellButton} hitSlop={8}>
-      <Bell size={23} color={theme.text} strokeWidth={1.8} />
+      <Bell size={21} color={theme.text} strokeWidth={1.6} />
       {unreadCount > 0 && (
-        <View style={[styles.badge, { backgroundColor: theme.primary }]}>
+        <View style={[styles.badge, { backgroundColor: theme.accent }]}>
           <Text style={styles.badgeText}>
             {unreadCount > 99 ? '99+' : unreadCount}
           </Text>
@@ -33,36 +49,53 @@ export default function TabsLayout() {
     <>
       <Tabs
         screenOptions={{
-          headerStyle: { backgroundColor: theme.surface },
-          headerTintColor: theme.text,
-          tabBarActiveTintColor: theme.primary,
-          tabBarInactiveTintColor: theme.textMuted,
-          tabBarStyle: { backgroundColor: theme.surface },
+          headerStyle: { backgroundColor: theme.background },
+          headerShadowVisible: false,
+          headerLeft: () => <HeaderLeft />,
+          headerTitle: () => null,
           headerRight: () => <BellButton />,
+          tabBarActiveTintColor: theme.text,
+          tabBarInactiveTintColor: theme.textMuted,
+          tabBarStyle: {
+            backgroundColor: theme.background,
+            borderTopWidth: StyleSheet.hairlineWidth,
+            borderTopColor: theme.elevated,
+            height: Platform.OS === 'ios' ? 84 : 64,
+            paddingBottom: Platform.OS === 'ios' ? 28 : 10,
+            paddingTop: 10,
+          },
+          tabBarLabelStyle: {
+            fontSize: 10,
+            fontWeight: '500',
+            letterSpacing: 0.2,
+          },
         }}
       >
         <Tabs.Screen
           name="index"
           options={{
-            title: 'Home',
             tabBarLabel: 'Home',
-            tabBarIcon: ({ color, size }) => <Home color={color} size={size} />,
+            tabBarIcon: ({ color, size }) => (
+              <Home color={color} size={size - 2} strokeWidth={1.6} />
+            ),
           }}
         />
         <Tabs.Screen
           name="calendar"
           options={{
-            title: 'Calendário',
-            tabBarLabel: 'Calendário',
-            tabBarIcon: ({ color, size }) => <Calendar color={color} size={size} />,
+            tabBarLabel: 'Eventos',
+            tabBarIcon: ({ color, size }) => (
+              <Calendar color={color} size={size - 2} strokeWidth={1.6} />
+            ),
           }}
         />
         <Tabs.Screen
           name="profile"
           options={{
-            title: 'Perfil',
             tabBarLabel: 'Perfil',
-            tabBarIcon: ({ color, size }) => <User color={color} size={size} />,
+            tabBarIcon: ({ color, size }) => (
+              <User color={color} size={size - 2} strokeWidth={1.6} />
+            ),
           }}
         />
         <Tabs.Screen name="notifications" options={{ href: null }} />
@@ -73,14 +106,23 @@ export default function TabsLayout() {
 }
 
 const styles = StyleSheet.create({
-  bellButton: {
-    marginRight: 16,
-    padding: 4,
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginLeft: 20,
   },
+  star: { fontSize: 17, lineHeight: 22 },
+  churchLabel: {
+    fontSize: 14,
+    letterSpacing: 0.2,
+    maxWidth: 200,
+  },
+  bellButton: { marginRight: 20, padding: 4 },
   badge: {
     position: 'absolute',
-    top: -2,
-    right: -4,
+    top: -3,
+    right: -5,
     minWidth: 16,
     height: 16,
     borderRadius: 8,
@@ -88,10 +130,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 3,
   },
-  badgeText: {
-    color: '#fff',
-    fontSize: 10,
-    fontWeight: '700',
-    lineHeight: 12,
-  },
+  badgeText: { color: '#fff', fontSize: 10, fontWeight: '700', lineHeight: 12 },
 });

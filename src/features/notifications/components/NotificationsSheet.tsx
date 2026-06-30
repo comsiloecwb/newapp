@@ -236,8 +236,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   sheetTitle: {
-    fontSize: 17,
-    fontWeight: '700',
+    fontSize: 20,
+    fontFamily: 'PlayfairDisplay_500Medium',
   },
   markAllText: {
     fontSize: 13,

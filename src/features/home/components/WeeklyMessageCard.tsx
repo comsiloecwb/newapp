@@ -1,43 +1,74 @@
-import { ActivityIndicator, StyleSheet, Text } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { Card } from '@/components/ui/Card';
-import { EmptyState } from '@/components/ui/EmptyState';
 import { useLatestWeeklyMessage } from '@/features/weekly-message/hooks/use-weekly-message';
 import { useChurchTheme } from '@/theme/ChurchThemeProvider';
 
+const SERIF_REGULAR = 'PlayfairDisplay_400Regular';
+const SERIF_MEDIUM = 'PlayfairDisplay_500Medium';
+
 export function WeeklyMessageCard() {
   const theme = useChurchTheme();
-  const { data, isLoading, error } = useLatestWeeklyMessage();
+  const { data, isLoading } = useLatestWeeklyMessage();
 
   if (isLoading) {
     return (
-      <Card>
-        <ActivityIndicator color={theme.primary} />
-      </Card>
-    );
-  }
-
-  if (error || !data) {
-    return (
-      <Card>
-        <EmptyState title="Palavra da semana" message="Nenhuma mensagem publicada ainda." />
-      </Card>
+      <View style={[styles.card, { backgroundColor: theme.surface }]}>
+        <ActivityIndicator color={theme.accent} />
+      </View>
     );
   }
 
   return (
-    <Card>
-      <Text style={[styles.label, { color: theme.secondary }]}>Palavra da semana</Text>
-      <Text style={[styles.title, { color: theme.text }]}>{data.title}</Text>
-      <Text style={[styles.content, { color: theme.textMuted }]} numberOfLines={4}>
-        {data.content}
-      </Text>
-    </Card>
+    <View style={[styles.card, { backgroundColor: theme.surface }]}>
+      <Text style={[styles.label, { color: theme.accent }]}>PALAVRA DA SEMANA</Text>
+      {data ? (
+        <>
+          <Text style={[styles.title, { color: theme.text, fontFamily: SERIF_MEDIUM }]}>{data.title}</Text>
+          <Text style={[styles.content, { color: theme.textMuted }]} numberOfLines={3}>
+            {data.content}
+          </Text>
+          <Pressable style={styles.learnMore}>
+            <Text style={[styles.learnMoreText, { color: theme.accent }]}>
+              Ler mais  →
+            </Text>
+          </Pressable>
+        </>
+      ) : (
+        <Text style={[styles.empty, { color: theme.textMuted, fontFamily: SERIF_REGULAR }]}>
+          Nenhuma mensagem{'\n'}publicada ainda.
+        </Text>
+      )}
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  label: { fontSize: 12, fontWeight: '600', textTransform: 'uppercase', marginBottom: 8 },
-  title: { fontSize: 18, fontWeight: '700', marginBottom: 8 },
-  content: { fontSize: 15, lineHeight: 22 },
+  card: {
+    borderRadius: 16,
+    padding: 22,
+    gap: 10,
+  },
+  label: {
+    fontSize: 10,
+    fontWeight: '600',
+    letterSpacing: 2,
+  },
+  title: {
+    fontSize: 20,
+    lineHeight: 28,
+  },
+  content: {
+    fontSize: 14,
+    lineHeight: 22,
+  },
+  learnMore: { marginTop: 4 },
+  learnMoreText: {
+    fontSize: 13,
+    fontWeight: '500',
+    letterSpacing: 0.3,
+  },
+  empty: {
+    fontSize: 18,
+    lineHeight: 28,
+  },
 });

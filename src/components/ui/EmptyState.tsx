@@ -6,7 +6,7 @@ export function EmptyState({ title, message }: { title: string; message?: string
   const theme = useChurchTheme();
   return (
     <View style={styles.wrap}>
-      <Text style={[styles.title, { color: theme.text }]}>{title}</Text>
+      <Text style={[styles.title, { color: theme.textMuted }]}>{title}</Text>
       {message ? (
         <Text style={[styles.message, { color: theme.textMuted }]}>{message}</Text>
       ) : null}
@@ -15,7 +15,7 @@ export function EmptyState({ title, message }: { title: string; message?: string
 }
 
 const styles = StyleSheet.create({
-  wrap: { padding: 24, alignItems: 'center' },
-  title: { fontSize: 16, fontWeight: '600', textAlign: 'center' },
-  message: { fontSize: 14, marginTop: 8, textAlign: 'center' },
+  wrap: { paddingVertical: 32, paddingHorizontal: 24, alignItems: 'center' },
+  title: { fontSize: 15, fontWeight: '600', textAlign: 'center' },
+  message: { fontSize: 13, marginTop: 6, textAlign: 'center', lineHeight: 20 },
 });

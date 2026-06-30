@@ -16,6 +16,8 @@ import { isSupabaseConfigured } from '@/lib/supabase';
 import { MOCK_EVENTS } from '@/lib/mock-data';
 import { useChurchTheme } from '@/theme/ChurchThemeProvider';
 
+const SERIF_MEDIUM = 'PlayfairDisplay_500Medium';
+
 type Filter = 'upcoming' | 'past';
 
 export default function CalendarScreen() {
@@ -23,36 +25,55 @@ export default function CalendarScreen() {
   const [filter, setFilter] = useState<Filter>('upcoming');
   const { data, isLoading } = useEvents(filter);
 
-  const list = isSupabaseConfigured ? data : MOCK_EVENTS;
+  const list = (data?.length ? data : MOCK_EVENTS);
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]} edges={['bottom']}>
-      <View style={styles.filters}>
-        {(['upcoming', 'past'] as const).map((f) => (
-          <Pressable
-            key={f}
-            onPress={() => setFilter(f)}
-            style={[
-              styles.chip,
-              {
-                backgroundColor: filter === f ? theme.primary : theme.surface,
-              },
-            ]}
-          >
-            <Text style={{ color: filter === f ? '#fff' : theme.text }}>
-              {f === 'upcoming' ? 'Próximos' : 'Passados'}
-            </Text>
-          </Pressable>
-        ))}
-      </View>
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        {/* Title */}
+        <Text style={[styles.pageTitle, { color: theme.text, fontFamily: SERIF_MEDIUM }]}>
+          {filter === 'upcoming' ? 'Upcoming' : 'Past Events'}
+        </Text>
 
-      <ScrollView contentContainerStyle={styles.list}>
+        {/* Filter pills */}
+        <View style={styles.filterRow}>
+          {(['upcoming', 'past'] as const).map((f) => (
+            <Pressable
+              key={f}
+              onPress={() => setFilter(f)}
+              style={[
+                styles.pill,
+                filter === f
+                  ? { backgroundColor: theme.text }
+                  : { backgroundColor: theme.surface },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.pillLabel,
+                  { color: filter === f ? theme.background : theme.textMuted },
+                ]}
+              >
+                {f === 'upcoming' ? 'Próximos' : 'Passados'}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+
+        {/* Event list */}
         {isLoading && isSupabaseConfigured ? (
-          <ActivityIndicator color={theme.primary} />
+          <ActivityIndicator color={theme.accent} style={{ marginTop: 40 }} />
         ) : list?.length ? (
-          list.map((event) => <EventListItem key={event.id} event={event} />)
+          <View style={[styles.listCard, { backgroundColor: theme.surface }]}>
+            {list.map((event) => (
+              <EventListItem key={event.id} event={event} />
+            ))}
+          </View>
         ) : (
-          <EmptyState title="Nenhum evento neste filtro" />
+          <EmptyState
+            title={filter === 'upcoming' ? 'Nenhum evento próximo' : 'Nenhum evento passado'}
+            message="Novos eventos aparecerão aqui"
+          />
         )}
       </ScrollView>
     </SafeAreaView>
@@ -61,7 +82,19 @@ export default function CalendarScreen() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
-  filters: { flexDirection: 'row', gap: 8, padding: 16, paddingBottom: 0 },
-  chip: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20 },
-  list: { padding: 16 },
+  content: { padding: 20, paddingBottom: 48, gap: 20 },
+  pageTitle: { fontSize: 36, lineHeight: 42 },
+  filterRow: { flexDirection: 'row', gap: 10 },
+  pill: {
+    paddingHorizontal: 20,
+    paddingVertical: 9,
+    borderRadius: 24,
+  },
+  pillLabel: { fontSize: 13, fontWeight: '500' },
+  listCard: {
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingTop: 4,
+    paddingBottom: 4,
+  },
 });

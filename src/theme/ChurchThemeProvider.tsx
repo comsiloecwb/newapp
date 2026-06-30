@@ -1,43 +1,46 @@
 import { createContext, useContext, useMemo, type ReactNode } from 'react';
-import { useColorScheme } from 'react-native';
-
 import { useAuthStore } from '@/stores/auth-store';
 
 export interface ChurchTheme {
   primary: string;
   secondary: string;
+  accent: string;
+  cream: string;
   background: string;
   surface: string;
+  elevated: string;
   text: string;
   textMuted: string;
 }
 
 const DEFAULT_THEME: ChurchTheme = {
-  primary: '#1E3A5F',
-  secondary: '#4A90D9',
-  background: '#F5F7FA',
-  surface: '#FFFFFF',
-  text: '#1A1A2E',
-  textMuted: '#6B7280',
+  primary: '#1A2744',
+  secondary: '#3B6CB7',
+  accent: '#C9954A',
+  cream: '#D4AF7A',
+  background: '#FDFCF8',
+  surface: '#F5F0E8',
+  elevated: '#EDE8DF',
+  text: '#1C1917',
+  textMuted: '#9C8C7A',
 };
 
 const ChurchThemeContext = createContext<ChurchTheme>(DEFAULT_THEME);
 
 export function ChurchThemeProvider({ children }: { children: ReactNode }) {
   const church = useAuthStore((s) => s.church);
-  const scheme = useColorScheme();
 
-  const theme = useMemo<ChurchTheme>(() => {
-    const isDark = scheme === 'dark';
-    return {
-      primary: church?.primary_color ?? DEFAULT_THEME.primary,
-      secondary: church?.secondary_color ?? DEFAULT_THEME.secondary,
-      background: isDark ? '#0F1419' : '#F5F7FA',
-      surface: isDark ? '#1A2332' : '#FFFFFF',
-      text: isDark ? '#F9FAFB' : '#1A1A2E',
-      textMuted: isDark ? '#9CA3AF' : '#6B7280',
-    };
-  }, [church, scheme]);
+  const theme = useMemo<ChurchTheme>(() => ({
+    primary: church?.primary_color ?? DEFAULT_THEME.primary,
+    secondary: church?.secondary_color ?? DEFAULT_THEME.secondary,
+    accent: '#C9954A',
+    cream: '#D4AF7A',
+    background: '#FDFCF8',
+    surface: '#F5F0E8',
+    elevated: '#EDE8DF',
+    text: '#1C1917',
+    textMuted: '#9C8C7A',
+  }), [church]);
 
   return (
     <ChurchThemeContext.Provider value={theme}>{children}</ChurchThemeContext.Provider>

@@ -39,3 +39,22 @@ export function useUpcomingEvents(limit = 5) {
     data: query.data?.slice(0, limit),
   };
 }
+
+export function useEventById(id: string | undefined) {
+  const churchId = useAuthStore((s) => s.church?.id);
+
+  return useQuery({
+    queryKey: ['event', id],
+    enabled: Boolean(id && churchId && isSupabaseConfigured),
+    queryFn: async (): Promise<Event | null> => {
+      const { data, error } = await supabase
+        .from('events')
+        .select('*')
+        .eq('id', id!)
+        .eq('church_id', churchId!)
+        .single();
+      if (error) return null;
+      return data as Event;
+    },
+  });
+}
