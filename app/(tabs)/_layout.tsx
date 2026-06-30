@@ -1,6 +1,8 @@
 import { Bell, Calendar, Home, User } from 'lucide-react-native';
 import { Tabs } from 'expo-router';
 import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useEffect } from 'react';
+import { registerPushToken } from '@/lib/push-notifications';
 
 import { useNotificationsStore } from '@/stores/notifications-store';
 import { useNotificationsSheetStore } from '@/stores/notifications-sheet-store';
@@ -44,6 +46,11 @@ function BellButton() {
 
 export default function TabsLayout() {
   const theme = useChurchTheme();
+  const profile = useAuthStore((s) => s.profile);
+
+  useEffect(() => {
+    if (profile?.id) registerPushToken(profile.id);
+  }, [profile?.id]);
 
   return (
     <>
