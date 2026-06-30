@@ -1,4 +1,4 @@
-import type { Church, Event, Profile, WeeklyMessage } from '@/types/database';
+import type { Church, Event, InAppNotification, Profile, WeeklyMessage } from '@/types/database';
 
 export const MOCK_CHURCH: Church = {
   id: '00000000-0000-4000-8000-000000000001',
@@ -37,6 +37,42 @@ const inDays = (n: number, hour = 19) => {
   d.setHours(hour, 0, 0, 0);
   return d.toISOString();
 };
+
+export const MOCK_NOTIFICATIONS: InAppNotification[] = [
+  {
+    id: 'notif-1',
+    user_id: MOCK_PROFILE.id,
+    church_id: MOCK_CHURCH.id,
+    type: 'event_created',
+    title: 'Novo evento: Culto de domingo',
+    body: 'Celebração semanal',
+    reference_id: 'evt-1',
+    read: false,
+    created_at: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
+  },
+  {
+    id: 'notif-2',
+    user_id: MOCK_PROFILE.id,
+    church_id: MOCK_CHURCH.id,
+    type: 'new_message',
+    title: 'Nova palavra: Fé que move montanhas',
+    body: 'Mensagem de exemplo do culto de domingo.',
+    reference_id: '1',
+    read: false,
+    created_at: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
+  },
+  {
+    id: 'notif-3',
+    user_id: MOCK_PROFILE.id,
+    church_id: MOCK_CHURCH.id,
+    type: 'event_created',
+    title: 'Novo evento: Retiro jovem',
+    body: 'Evento pago de exemplo',
+    reference_id: 'evt-2',
+    read: true,
+    created_at: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
+  },
+];
 
 export const MOCK_EVENTS: Event[] = [
   {

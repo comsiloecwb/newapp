@@ -2,6 +2,7 @@ export type UserRole = 'admin' | 'editor' | 'member';
 export type RegistrationStatus = 'confirmed' | 'cancelled';
 export type PaymentStatus = 'pending' | 'paid' | 'refunded';
 export type ScheduledNotificationType = 'reminder_24h' | 'reminder_1h' | 'event_created';
+export type InAppNotificationType = 'event_created' | 'new_message' | 'event_reminder' | 'announcement';
 
 export interface Church {
   id: string;
@@ -64,6 +65,18 @@ export interface Payment {
   stripe_session_id: string;
   amount_cents: number;
   status: PaymentStatus;
+}
+
+export interface InAppNotification {
+  id: string;
+  user_id: string;
+  church_id: string;
+  type: InAppNotificationType;
+  title: string;
+  body: string;
+  reference_id: string | null;
+  read: boolean;
+  created_at: string;
 }
 
 export interface ScheduledNotification {

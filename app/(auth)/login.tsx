@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Alert,
   KeyboardAvoidingView,
@@ -21,6 +21,13 @@ export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!isSupabaseConfigured) {
+      setSession(MOCK_PROFILE, MOCK_CHURCH);
+      router.replace('/(tabs)');
+    }
+  }, [setSession]);
 
   async function handleLogin() {
     if (!isSupabaseConfigured) {
