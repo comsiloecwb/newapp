@@ -38,9 +38,22 @@ export default function LoginScreen() {
   async function handleLogin() {
     if (!isSupabaseConfigured) return;
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    setLoading(false);
-    if (error) Alert.alert('Erro', error.message);
+    try {
+      const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+      if (signInError) { Alert.alert('Erro', signInError.message); return; }
+
+      const { data: profile } = await supabase.from('profiles').select('*').single();
+      if (!profile) { Alert.alert('Erro', 'Perfil não encontrado'); return; }
+
+      const { data: church } = await supabase
+        .from('churches').select('*').eq('id', profile.church_id).single();
+      if (!church) { Alert.alert('Erro', 'Igreja não encontrada'); return; }
+
+      setSession(profile, church);
+      router.replace('/(tabs)');
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
