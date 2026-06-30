@@ -39,15 +39,22 @@ export default function LoginScreen() {
     if (!isSupabaseConfigured) return;
     setLoading(true);
     try {
-      const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({ email, password });
       if (signInError) { Alert.alert('Erro', signInError.message); return; }
 
-      const { data: profile } = await supabase.from('profiles').select('*').single();
-      if (!profile) { Alert.alert('Erro', 'Perfil não encontrado'); return; }
+      const userId = signInData.user?.id;
+      if (!userId) { Alert.alert('Erro', 'Sessão inválida'); return; }
 
-      const { data: church } = await supabase
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles').select('*').eq('id', userId).single();
+      if (profileError || !profile) {
+        Alert.alert('Erro', `Perfil não encontrado (${profileError?.code})`);
+        return;
+      }
+
+      const { data: church, error: churchError } = await supabase
         .from('churches').select('*').eq('id', profile.church_id).single();
-      if (!church) { Alert.alert('Erro', 'Igreja não encontrada'); return; }
+      if (churchError || !church) { Alert.alert('Erro', 'Igreja não encontrada'); return; }
 
       setSession(profile, church);
       router.replace('/(tabs)');
