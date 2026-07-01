@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Modal,
@@ -55,6 +55,7 @@ export default function HomeScreen() {
   const [pixOpen, setPixOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [amount, setAmount] = useState('');
+  const amountRef = useRef<TextInput>(null);
 
   const greeting = useMemo(() => {
     const h = new Date().getHours();
@@ -215,17 +216,21 @@ export default function HomeScreen() {
           </View>
 
           {/* Valor personalizado */}
-          <View style={[styles.amountInputWrap, { backgroundColor: theme.surface, borderColor: amount && !AMOUNTS.includes(amount) ? GOLD : theme.elevated }]}>
+          <Pressable
+            style={[styles.amountInputWrap, { backgroundColor: theme.surface, borderColor: amount && !AMOUNTS.includes(amount) ? GOLD : theme.elevated }]}
+            onPress={() => amountRef.current?.focus()}
+          >
             <Text style={[styles.amountPrefix, { color: theme.textMuted }]}>R$</Text>
             <TextInput
+              ref={amountRef}
               style={[styles.amountInput, { color: theme.text }]}
               placeholder="Outro valor"
               placeholderTextColor={theme.textMuted}
-              keyboardType="numeric"
+              keyboardType="decimal-pad"
               value={amount}
-              onChangeText={setAmount}
+              onChangeText={(v) => setAmount(v.replace(/[^0-9.,]/g, ''))}
             />
-          </View>
+          </Pressable>
 
           {/* Copiar payload */}
           <Pressable style={[styles.copyBtn, { backgroundColor: copied ? GOLD : DARK_BG }]} onPress={copyPix}>
