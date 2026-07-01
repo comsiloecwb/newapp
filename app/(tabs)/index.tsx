@@ -7,6 +7,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
@@ -50,6 +51,7 @@ export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const [pixOpen, setPixOpen] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [amount, setAmount] = useState('');
 
   const greeting = useMemo(() => {
     const h = new Date().getHours();
@@ -188,11 +190,32 @@ export default function HomeScreen() {
 
           {/* Sugestões de valor */}
           <View style={styles.amountGrid}>
-            {AMOUNTS.map((a) => (
-              <View key={a} style={[styles.amountChip, { borderColor: theme.elevated }]}>
-                <Text style={[styles.amountText, { color: theme.text }]}>{a}</Text>
-              </View>
-            ))}
+            {AMOUNTS.map((a) => {
+              const val = a.replace('R$ ', '');
+              const selected = amount === val;
+              return (
+                <Pressable
+                  key={a}
+                  style={[styles.amountChip, { borderColor: selected ? GOLD : theme.elevated, backgroundColor: selected ? GOLD + '18' : 'transparent' }]}
+                  onPress={() => setAmount(val)}
+                >
+                  <Text style={[styles.amountText, { color: selected ? GOLD : theme.text }]}>{a}</Text>
+                </Pressable>
+              );
+            })}
+          </View>
+
+          {/* Valor personalizado */}
+          <View style={[styles.amountInputWrap, { backgroundColor: theme.surface, borderColor: amount && !AMOUNTS.map(a => a.replace('R$ ','')).includes(amount) ? GOLD : theme.elevated }]}>
+            <Text style={[styles.amountPrefix, { color: theme.textMuted }]}>R$</Text>
+            <TextInput
+              style={[styles.amountInput, { color: theme.text }]}
+              placeholder="Outro valor"
+              placeholderTextColor={theme.textMuted}
+              keyboardType="numeric"
+              value={amount}
+              onChangeText={setAmount}
+            />
           </View>
 
           {/* Chave PIX */}
@@ -333,6 +356,17 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   amountText: { fontSize: 14, fontWeight: '600' },
+  amountInputWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1.5,
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 2,
+    gap: 6,
+  },
+  amountPrefix: { fontSize: 16, fontWeight: '600' },
+  amountInput: { flex: 1, fontSize: 16, paddingVertical: 12 },
   pixBox: {
     borderRadius: 14,
     padding: 16,
