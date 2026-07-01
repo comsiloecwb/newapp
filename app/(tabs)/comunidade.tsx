@@ -8,6 +8,13 @@ const SERIF_REG = 'PlayfairDisplay_400Regular';
 
 const SECTIONS = [
   {
+    key: 'palavras',
+    title: 'Palavras',
+    subtitle: 'Biblioteca de sermões e mensagens da igreja',
+    bg: '#160A2E',
+    route: '/comunidade/palavras',
+  },
+  {
     key: 'oracao',
     title: 'Mural de Oração',
     subtitle: 'Compartilhe pedidos com a comunidade e liderança',
