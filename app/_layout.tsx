@@ -29,6 +29,9 @@ export default function RootLayout() {
             name="event/[id]"
             options={{ headerShown: true, title: 'Evento', presentation: 'card' }}
           />
+          <Stack.Screen name="comunidade/oracao" options={{ presentation: 'card' }} />
+          <Stack.Screen name="comunidade/doacoes" options={{ presentation: 'card' }} />
+          <Stack.Screen name="comunidade/fotos" options={{ presentation: 'card' }} />
         </Stack>
       </ChurchThemeProvider>
     </QueryClientProvider>
