@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import {
   ActivityIndicator,
   Platform,
@@ -9,9 +9,11 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Bell, Heart } from 'lucide-react-native';
+import { Bell, Calendar, ChevronRight } from 'lucide-react-native';
+import { router } from 'expo-router';
 
 import { useLatestWeeklyMessage } from '@/features/weekly-message/hooks/use-weekly-message';
+import { useUpcomingEvents } from '@/features/events/hooks/use-events';
 import { useAuthStore } from '@/stores/auth-store';
 import { useChurchTheme } from '@/theme/ChurchThemeProvider';
 import { useNotificationsStore } from '@/stores/notifications-store';
@@ -20,32 +22,28 @@ import { useNotificationsSheetStore } from '@/stores/notifications-sheet-store';
 const GOLD = '#C9A84C';
 const DARK_BG = '#0A1628';
 const SERIF = 'PlayfairDisplay_400Regular';
+const SERIF_MED = 'PlayfairDisplay_500Medium';
 
-type Prayer = {
-  id: string;
-  title: string;
-  name: string;
-  time: string;
-  likes: number;
-  liked: boolean;
-};
-
-const INITIAL_PRAYERS: Prayer[] = [
-  { id: 'p1', title: 'Oração pela saúde da minha mãe', name: 'Ana Clara M.', time: 'há 2 horas', likes: 14, liked: false },
-  { id: 'p2', title: 'Sabedoria para decisão profissional', name: 'João Santos', time: 'há 5 horas', likes: 7, liked: false },
-  { id: 'p3', title: 'Restauração do meu casamento', name: 'Pedro Lima', time: 'há 1 dia', likes: 23, liked: true },
+const MOCK_EVENTS = [
+  { id: 'm1', title: 'Culto de Domingo', start_at: new Date(Date.now() + 86400000).toISOString(), location: 'Templo Principal' },
+  { id: 'm2', title: 'Reunião de Oração', start_at: new Date(Date.now() + 3 * 86400000).toISOString(), location: 'Sala 3' },
+  { id: 'm3', title: 'Louvor & Adoração', start_at: new Date(Date.now() + 5 * 86400000).toISOString(), location: 'Templo Principal' },
 ];
+
+function formatEventDate(iso: string) {
+  const d = new Date(iso);
+  return d.toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short' });
+}
 
 export default function HomeScreen() {
   const theme = useChurchTheme();
   const profile = useAuthStore((s) => s.profile);
   const church = useAuthStore((s) => s.church);
   const { data: message, isLoading: messageLoading } = useLatestWeeklyMessage();
+  const { data: events, isLoading: eventsLoading } = useUpcomingEvents(3);
   const unreadCount = useNotificationsStore((s) => s.unreadCount);
   const openNotifications = useNotificationsSheetStore((s) => s.open);
   const insets = useSafeAreaInsets();
-
-  const [prayers, setPrayers] = useState<Prayer[]>(INITIAL_PRAYERS);
 
   const greeting = useMemo(() => {
     const h = new Date().getHours();
@@ -59,24 +57,14 @@ export default function HomeScreen() {
     return name.split(' ')[0] || church?.name || 'Bem-vindo';
   }, [profile?.name, church?.name]);
 
-  const toggleLike = useCallback((id: string) => {
-    setPrayers((prev) =>
-      prev.map((p) =>
-        p.id === id
-          ? { ...p, liked: !p.liked, likes: p.liked ? p.likes - 1 : p.likes + 1 }
-          : p
-      )
-    );
-  }, []);
+  const displayEvents = events?.length ? events : MOCK_EVENTS;
 
   return (
     <View style={[styles.root, { backgroundColor: theme.background }]}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
 
-        {/* Dark header + Palavra do Dia */}
+        {/* Dark header */}
         <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
-
-          {/* Top row: church name + bell */}
           <View style={styles.headerTop}>
             <Text style={styles.churchName}>
               {(church?.name ?? 'Igreja Siloé').toUpperCase()}
@@ -91,7 +79,6 @@ export default function HomeScreen() {
             </Pressable>
           </View>
 
-          {/* Greeting */}
           <Text style={[styles.greeting, { fontFamily: SERIF }]}>
             {greeting}, {firstName} ✦
           </Text>
@@ -115,21 +102,44 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        {/* White content section */}
-        <View style={[styles.content, { backgroundColor: theme.background }]}>
-
-          {/* Prayer wall header */}
+        {/* Próximos eventos */}
+        <View style={[styles.section, { backgroundColor: theme.background }]}>
           <View style={styles.sectionRow}>
-            <Text style={[styles.sectionTitle, { color: theme.text }]}>Mural de Oração</Text>
-            <Pressable style={styles.addBtn}>
-              <Text style={styles.addBtnText}>＋ Pedir Oração</Text>
+            <Text style={[styles.sectionTitle, { color: theme.text, fontFamily: SERIF_MED }]}>
+              Próximos Eventos
+            </Text>
+            <Pressable onPress={() => router.push('/(tabs)/calendar')} hitSlop={8}>
+              <Text style={[styles.seeAll, { color: GOLD }]}>Ver todos</Text>
             </Pressable>
           </View>
 
-          {/* Prayer cards */}
-          {prayers.map((prayer) => (
-            <PrayerCard key={prayer.id} prayer={prayer} onToggle={toggleLike} theme={theme} />
-          ))}
+          {eventsLoading ? (
+            <ActivityIndicator color={GOLD} style={{ marginTop: 12 }} />
+          ) : (
+            displayEvents.map((event) => (
+              <Pressable
+                key={event.id}
+                style={[styles.eventCard, { backgroundColor: theme.surface }]}
+                onPress={() => router.push(`/event/${event.id}` as never)}
+              >
+                <View style={[styles.eventDateBadge, { backgroundColor: DARK_BG }]}>
+                  <Calendar size={14} color={GOLD} strokeWidth={1.6} />
+                  <Text style={styles.eventDateText}>{formatEventDate(event.start_at)}</Text>
+                </View>
+                <View style={styles.eventInfo}>
+                  <Text style={[styles.eventTitle, { color: theme.text }]} numberOfLines={1}>
+                    {event.title}
+                  </Text>
+                  {event.location && (
+                    <Text style={[styles.eventLocation, { color: theme.textMuted }]} numberOfLines={1}>
+                      {event.location}
+                    </Text>
+                  )}
+                </View>
+                <ChevronRight size={16} color={theme.textMuted} strokeWidth={1.6} />
+              </Pressable>
+            ))
+          )}
         </View>
 
       </ScrollView>
@@ -137,51 +147,16 @@ export default function HomeScreen() {
   );
 }
 
-function PrayerCard({
-  prayer,
-  onToggle,
-  theme,
-}: {
-  prayer: Prayer;
-  onToggle: (id: string) => void;
-  theme: ReturnType<typeof useChurchTheme>;
-}) {
-  return (
-    <View style={[styles.prayerCard, { backgroundColor: theme.surface }]}>
-      <View style={styles.prayerBody}>
-        <Text style={[styles.prayerTitle, { color: theme.text }]}>{prayer.title}</Text>
-        <View style={styles.prayerMeta}>
-          <Text style={[styles.prayerName, { color: theme.textMuted }]}>{prayer.name}</Text>
-          <Text style={[styles.prayerTime, { color: theme.textMuted }]}>· {prayer.time}</Text>
-        </View>
-      </View>
-      <Pressable onPress={() => onToggle(prayer.id)} style={styles.likeBtn} hitSlop={8}>
-        <Heart
-          size={17}
-          color={prayer.liked ? GOLD : theme.textMuted}
-          fill={prayer.liked ? GOLD : 'transparent'}
-          strokeWidth={1.6}
-        />
-        <Text style={[styles.likeCount, { color: prayer.liked ? GOLD : theme.textMuted }]}>
-          {prayer.likes}
-        </Text>
-      </Pressable>
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  scrollContent: { flexGrow: 1 },
+  scrollContent: { flexGrow: 1, paddingBottom: 40 },
 
-  // Dark header
   header: {
     backgroundColor: DARK_BG,
     paddingHorizontal: 22,
     paddingBottom: 32,
     borderBottomLeftRadius: 28,
     borderBottomRightRadius: 28,
-    gap: 0,
   },
   headerTop: {
     flexDirection: 'row',
@@ -209,7 +184,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 2,
   },
   bellBadgeText: { color: '#fff', fontSize: 9, fontWeight: '700' },
-
   greeting: {
     color: '#FFFFFF',
     fontSize: 28,
@@ -218,8 +192,6 @@ const styles = StyleSheet.create({
     letterSpacing: 0.2,
     marginBottom: 22,
   },
-
-  // Palavra do Dia
   palavraWrap: { gap: 10 },
   palavraLabel: {
     color: GOLD,
@@ -242,13 +214,10 @@ const styles = StyleSheet.create({
     fontSize: 13,
     lineHeight: 20,
   },
-
-  // Content section
-  content: {
+  section: {
     paddingHorizontal: 20,
     paddingTop: 24,
-    paddingBottom: 40,
-    gap: 12,
+    gap: 10,
   },
   sectionRow: {
     flexDirection: 'row',
@@ -258,26 +227,15 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: '600',
     letterSpacing: 0.2,
   },
-  addBtn: {
-    borderWidth: 1,
-    borderColor: GOLD,
-    borderRadius: 20,
-    paddingHorizontal: 12,
-    paddingVertical: 5,
-  },
-  addBtnText: {
-    color: GOLD,
-    fontSize: 12,
+  seeAll: {
+    fontSize: 13,
     fontWeight: '600',
   },
-
-  // Prayer card
-  prayerCard: {
+  eventCard: {
     borderRadius: 12,
-    padding: 16,
+    padding: 14,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
@@ -291,11 +249,21 @@ const styles = StyleSheet.create({
       android: { elevation: 2 },
     }),
   },
-  prayerBody: { flex: 1, gap: 5 },
-  prayerTitle: { fontSize: 14, fontWeight: '500', lineHeight: 20 },
-  prayerMeta: { flexDirection: 'row', alignItems: 'center' },
-  prayerName: { fontSize: 12 },
-  prayerTime: { fontSize: 12 },
-  likeBtn: { alignItems: 'center', gap: 3 },
-  likeCount: { fontSize: 11, fontWeight: '600' },
+  eventDateBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+  },
+  eventDateText: {
+    color: GOLD,
+    fontSize: 11,
+    fontWeight: '600',
+    letterSpacing: 0.3,
+  },
+  eventInfo: { flex: 1 },
+  eventTitle: { fontSize: 14, fontWeight: '500', lineHeight: 20 },
+  eventLocation: { fontSize: 12, marginTop: 2 },
 });

@@ -1,4 +1,5 @@
-import { Bell, Calendar, Heart, Home, MoreHorizontal, Users } from 'lucide-react-native';
+'use client';
+import { Bell, Calendar, Home, Users2, User } from 'lucide-react-native';
 import { Tabs } from 'expo-router';
 import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useEffect } from 'react';
@@ -99,33 +100,27 @@ export default function TabsLayout() {
           }}
         />
         <Tabs.Screen
-          name="celulas"
+          name="comunidade"
           options={{
-            tabBarLabel: 'CÉLULAS',
+            tabBarLabel: 'COMUNIDADE',
             tabBarIcon: ({ color, size }) => (
-              <Users color={color} size={size - 2} strokeWidth={1.6} />
-            ),
-          }}
-        />
-        <Tabs.Screen
-          name="social"
-          options={{
-            tabBarLabel: 'SOCIAL',
-            tabBarIcon: ({ color, size }) => (
-              <Heart color={color} size={size - 2} strokeWidth={1.6} />
+              <Users2 color={color} size={size - 2} strokeWidth={1.6} />
             ),
           }}
         />
         <Tabs.Screen
           name="profile"
           options={{
-            tabBarLabel: 'MAIS',
+            tabBarLabel: 'PERFIL',
             tabBarIcon: ({ color, size }) => (
-              <MoreHorizontal color={color} size={size - 2} strokeWidth={1.6} />
+              <User color={color} size={size - 2} strokeWidth={1.6} />
             ),
           }}
         />
+        {/* Ocultas da tab bar */}
         <Tabs.Screen name="notifications" options={{ href: null }} />
+        <Tabs.Screen name="celulas" options={{ href: null }} />
+        <Tabs.Screen name="social" options={{ href: null }} />
       </Tabs>
       <NotificationsSheet />
     </>
