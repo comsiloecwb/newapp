@@ -15,6 +15,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Bell, Calendar, ChevronRight, Copy, Heart, X } from 'lucide-react-native';
 import { router } from 'expo-router';
 
+import { generatePixPayload } from '@/lib/pix';
 import { useLatestWeeklyMessage } from '@/features/weekly-message/hooks/use-weekly-message';
 import { useUpcomingEvents } from '@/features/events/hooks/use-events';
 import { useAuthStore } from '@/stores/auth-store';
@@ -26,8 +27,10 @@ const GOLD = '#C9A84C';
 const DARK_BG = '#0A1628';
 const SERIF = 'PlayfairDisplay_400Regular';
 const SERIF_MED = 'PlayfairDisplay_500Medium';
-const PIX_KEY = 'siloe@appigreja.com'; // ← troque pela chave PIX da igreja
-const AMOUNTS = ['R$ 50', 'R$ 100', 'R$ 200', 'R$ 500'];
+const PIX_KEY = 'siloe@appigreja.com';   // ← chave PIX da igreja
+const PIX_NAME = 'Igreja Siloe';          // ← nome da igreja (max 25 chars)
+const PIX_CITY = 'Sao Paulo';             // ← cidade (max 15 chars)
+const AMOUNTS = ['50', '100', '200', '500'];
 
 const MOCK_EVENTS = [
   { id: 'm1', title: 'Culto de Domingo', start_at: new Date(Date.now() + 86400000).toISOString(), location: 'Templo Principal' },
@@ -68,7 +71,14 @@ export default function HomeScreen() {
   const displayEvents = events?.length ? events : MOCK_EVENTS;
 
   async function copyPix() {
-    await Clipboard.setStringAsync(PIX_KEY);
+    const amountFormatted = amount ? parseFloat(amount).toFixed(2) : undefined;
+    const payload = generatePixPayload({
+      key: PIX_KEY,
+      name: PIX_NAME,
+      city: PIX_CITY,
+      amount: amountFormatted,
+    });
+    await Clipboard.setStringAsync(payload);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   }
@@ -190,23 +200,22 @@ export default function HomeScreen() {
 
           {/* Sugestões de valor */}
           <View style={styles.amountGrid}>
-            {AMOUNTS.map((a) => {
-              const val = a.replace('R$ ', '');
+            {AMOUNTS.map((val) => {
               const selected = amount === val;
               return (
                 <Pressable
-                  key={a}
+                  key={val}
                   style={[styles.amountChip, { borderColor: selected ? GOLD : theme.elevated, backgroundColor: selected ? GOLD + '18' : 'transparent' }]}
                   onPress={() => setAmount(val)}
                 >
-                  <Text style={[styles.amountText, { color: selected ? GOLD : theme.text }]}>{a}</Text>
+                  <Text style={[styles.amountText, { color: selected ? GOLD : theme.text }]}>R$ {val}</Text>
                 </Pressable>
               );
             })}
           </View>
 
           {/* Valor personalizado */}
-          <View style={[styles.amountInputWrap, { backgroundColor: theme.surface, borderColor: amount && !AMOUNTS.map(a => a.replace('R$ ','')).includes(amount) ? GOLD : theme.elevated }]}>
+          <View style={[styles.amountInputWrap, { backgroundColor: theme.surface, borderColor: amount && !AMOUNTS.includes(amount) ? GOLD : theme.elevated }]}>
             <Text style={[styles.amountPrefix, { color: theme.textMuted }]}>R$</Text>
             <TextInput
               style={[styles.amountInput, { color: theme.text }]}
@@ -218,20 +227,22 @@ export default function HomeScreen() {
             />
           </View>
 
-          {/* Chave PIX */}
-          <View style={[styles.pixBox, { backgroundColor: theme.surface }]}>
-            <View>
-              <Text style={[styles.pixLabel, { color: theme.textMuted }]}>Chave PIX</Text>
-              <Text style={[styles.pixKey, { color: theme.text }]}>{PIX_KEY}</Text>
-            </View>
-            <Pressable style={[styles.copyBtn, { backgroundColor: copied ? GOLD : DARK_BG }]} onPress={copyPix}>
-              <Copy size={14} color="#fff" strokeWidth={2} />
-              <Text style={styles.copyText}>{copied ? 'Copiado!' : 'Copiar'}</Text>
-            </Pressable>
-          </View>
+          {/* Copiar payload */}
+          <Pressable style={[styles.copyBtn, { backgroundColor: copied ? GOLD : DARK_BG }]} onPress={copyPix}>
+            <Copy size={16} color="#fff" strokeWidth={2} />
+            <Text style={styles.copyText}>
+              {copied
+                ? 'Copiado! Cole no seu banco ✓'
+                : amount
+                  ? `Copiar PIX · R$ ${parseFloat(amount).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
+                  : 'Copiar código PIX'}
+            </Text>
+          </Pressable>
 
           <Text style={[styles.pixNote, { color: theme.textMuted }]}>
-            Abra o app do seu banco, vá em PIX → Transferir e cole a chave acima.
+            {amount
+              ? 'O valor já estará incluído. Abra seu banco → PIX → Copia e Cola e cole o código.'
+              : 'Selecione ou digite um valor antes de copiar para incluí-lo automaticamente.'}
           </Text>
         </View>
       </Modal>
@@ -380,11 +391,11 @@ const styles = StyleSheet.create({
   copyBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 8,
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 16,
+    borderRadius: 14,
   },
-  copyText: { color: '#fff', fontSize: 13, fontWeight: '600' },
+  copyText: { color: '#fff', fontSize: 15, fontWeight: '600' },
   pixNote: { fontSize: 13, lineHeight: 19 },
 });
