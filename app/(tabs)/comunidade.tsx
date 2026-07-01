@@ -11,7 +11,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Heart, Lock, Plus, Users, X } from 'lucide-react-native';
+import { Camera, Gift, Hand, Heart, Lock, MapPin, Plus, Users, X } from 'lucide-react-native';
 import { useChurchTheme } from '@/theme/ChurchThemeProvider';
 
 const GOLD = '#C9A84C';
@@ -84,10 +84,16 @@ const MOCK_PHOTOS = PHOTO_COLORS.map((color, i) => ({
   label: i === 0 ? 'Culto Dom.' : i === 1 ? 'Louvor' : i === 2 ? 'EBD' : '',
 }));
 
+const TAB_ICONS: Record<Tab, typeof Hand> = {
+  oracao: Hand,
+  doacoes: Gift,
+  fotos: Camera,
+};
+
 const TABS: { key: Tab; label: string }[] = [
-  { key: 'oracao', label: '🙏 Oração' },
-  { key: 'doacoes', label: '❤️ Doações' },
-  { key: 'fotos', label: '📷 Fotos' },
+  { key: 'oracao', label: 'Oração' },
+  { key: 'doacoes', label: 'Doações' },
+  { key: 'fotos', label: 'Fotos' },
 ];
 
 export default function ComunidadeScreen() {
@@ -126,15 +132,20 @@ export default function ComunidadeScreen() {
 
       {/* Chips de navegação */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabsRow}>
-        {TABS.map((t) => (
-          <Pressable
-            key={t.key}
-            style={[styles.chip, { borderColor: activeTab === t.key ? GOLD : theme.elevated, backgroundColor: activeTab === t.key ? GOLD + '18' : 'transparent' }]}
-            onPress={() => setActiveTab(t.key)}
-          >
-            <Text style={[styles.chipText, { color: activeTab === t.key ? GOLD : theme.textMuted }]}>{t.label}</Text>
-          </Pressable>
-        ))}
+        {TABS.map((t) => {
+          const Icon = TAB_ICONS[t.key];
+          const active = activeTab === t.key;
+          return (
+            <Pressable
+              key={t.key}
+              style={[styles.chip, { borderColor: active ? GOLD : theme.elevated, backgroundColor: active ? GOLD + '18' : 'transparent' }]}
+              onPress={() => setActiveTab(t.key)}
+            >
+              <Icon size={13} color={active ? GOLD : theme.textMuted} strokeWidth={2} />
+              <Text style={[styles.chipText, { color: active ? GOLD : theme.textMuted }]}>{t.label}</Text>
+            </Pressable>
+          );
+        })}
       </ScrollView>
 
       {/* Conteúdo */}
@@ -184,7 +195,8 @@ export default function ComunidadeScreen() {
                   </>
                 )}
                 <View style={[styles.howBox, { backgroundColor: DARK_BG }]}>
-                  <Text style={styles.howText}>📍 {d.how}</Text>
+                  <MapPin size={12} color="rgba(255,255,255,0.6)" strokeWidth={1.6} style={{ marginTop: 2 }} />
+                  <Text style={styles.howText}>{d.how}</Text>
                 </View>
               </View>
             ))}
@@ -263,8 +275,9 @@ export default function ComunidadeScreen() {
 
           {visibility === 'leaders' && (
             <View style={[styles.infoBox, { backgroundColor: theme.surface }]}>
+              <Lock size={13} color={theme.textMuted} strokeWidth={1.6} style={{ marginTop: 2 }} />
               <Text style={[styles.infoText, { color: theme.textMuted }]}>
-                🔒 Apenas pastores e líderes verão este pedido.
+                Apenas pastores e líderes verão este pedido.
               </Text>
             </View>
           )}
@@ -303,7 +316,7 @@ function PrayerCard({ prayer, onToggle, theme }: { prayer: Prayer; onToggle: (id
 const styles = StyleSheet.create({
   safe: { flex: 1 },
   tabsRow: { paddingHorizontal: 20, paddingTop: 16, paddingBottom: 4, gap: 8 },
-  chip: { borderWidth: 1.5, borderRadius: 20, paddingHorizontal: 16, paddingVertical: 7 },
+  chip: { borderWidth: 1.5, borderRadius: 20, paddingHorizontal: 16, paddingVertical: 7, flexDirection: 'row', alignItems: 'center', gap: 5 },
   chipText: { fontSize: 13, fontWeight: '600' },
   scroll: { padding: 20, paddingTop: 12, paddingBottom: 40, gap: 12 },
 
