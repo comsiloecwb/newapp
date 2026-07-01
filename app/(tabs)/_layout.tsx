@@ -1,4 +1,4 @@
-import { Bell, Calendar, Home, User } from 'lucide-react-native';
+import { Bell, Calendar, Heart, Home, MoreHorizontal, Users } from 'lucide-react-native';
 import { Tabs } from 'expo-router';
 import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useEffect } from 'react';
@@ -10,6 +10,7 @@ import { useAuthStore } from '@/stores/auth-store';
 import { useChurchTheme } from '@/theme/ChurchThemeProvider';
 import { NotificationsSheet } from '@/features/notifications/components/NotificationsSheet';
 
+const GOLD = '#C9A84C';
 const SERIF = 'PlayfairDisplay_500Medium';
 
 function HeaderLeft() {
@@ -34,7 +35,7 @@ function BellButton() {
     <Pressable onPress={open} style={styles.bellButton} hitSlop={8}>
       <Bell size={21} color={theme.text} strokeWidth={1.6} />
       {unreadCount > 0 && (
-        <View style={[styles.badge, { backgroundColor: theme.accent }]}>
+        <View style={[styles.badge, { backgroundColor: GOLD }]}>
           <Text style={styles.badgeText}>
             {unreadCount > 99 ? '99+' : unreadCount}
           </Text>
@@ -61,27 +62,28 @@ export default function TabsLayout() {
           headerLeft: () => <HeaderLeft />,
           headerTitle: () => null,
           headerRight: () => <BellButton />,
-          tabBarActiveTintColor: theme.text,
-          tabBarInactiveTintColor: theme.textMuted,
+          tabBarActiveTintColor: GOLD,
+          tabBarInactiveTintColor: '#999999',
           tabBarStyle: {
-            backgroundColor: theme.background,
+            backgroundColor: '#FFFFFF',
             borderTopWidth: StyleSheet.hairlineWidth,
-            borderTopColor: theme.elevated,
+            borderTopColor: '#E0E0E0',
             height: Platform.OS === 'ios' ? 84 : 64,
             paddingBottom: Platform.OS === 'ios' ? 28 : 10,
             paddingTop: 10,
           },
           tabBarLabelStyle: {
-            fontSize: 10,
-            fontWeight: '500',
-            letterSpacing: 0.2,
+            fontSize: 9,
+            fontWeight: '600',
+            letterSpacing: 0.8,
           },
         }}
       >
         <Tabs.Screen
           name="index"
           options={{
-            tabBarLabel: 'Home',
+            headerShown: false,
+            tabBarLabel: 'INÍCIO',
             tabBarIcon: ({ color, size }) => (
               <Home color={color} size={size - 2} strokeWidth={1.6} />
             ),
@@ -90,18 +92,36 @@ export default function TabsLayout() {
         <Tabs.Screen
           name="calendar"
           options={{
-            tabBarLabel: 'Eventos',
+            tabBarLabel: 'AGENDA',
             tabBarIcon: ({ color, size }) => (
               <Calendar color={color} size={size - 2} strokeWidth={1.6} />
             ),
           }}
         />
         <Tabs.Screen
+          name="celulas"
+          options={{
+            tabBarLabel: 'CÉLULAS',
+            tabBarIcon: ({ color, size }) => (
+              <Users color={color} size={size - 2} strokeWidth={1.6} />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="social"
+          options={{
+            tabBarLabel: 'SOCIAL',
+            tabBarIcon: ({ color, size }) => (
+              <Heart color={color} size={size - 2} strokeWidth={1.6} />
+            ),
+          }}
+        />
+        <Tabs.Screen
           name="profile"
           options={{
-            tabBarLabel: 'Perfil',
+            tabBarLabel: 'MAIS',
             tabBarIcon: ({ color, size }) => (
-              <User color={color} size={size - 2} strokeWidth={1.6} />
+              <MoreHorizontal color={color} size={size - 2} strokeWidth={1.6} />
             ),
           }}
         />
