@@ -9,10 +9,11 @@ import {
 } from 'react-native';
 import { Stack, router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { BookOpen, ChevronRight, Users } from 'lucide-react-native';
+import { BookOpen, ChevronRight, Plus, Users } from 'lucide-react-native';
 import { useChurchTheme } from '@/theme/ChurchThemeProvider';
 import { getTodayDevotional } from '@/lib/devotionals';
-import { useDailyProgress, useMarkDailyRead, useGroupDevotionals } from '@/features/devotional/hooks/use-devotional';
+import { useDailyProgress, useMarkDailyRead } from '@/features/devotional/hooks/use-devotional';
+import { useMyGroups } from '@/features/devotional/hooks/use-groups';
 
 const DARK_BG = '#0A1628';
 const GREEN = '#16A34A';
@@ -28,7 +29,7 @@ export default function DevocionalScreen() {
 
   const { data: dailyDone = [] } = useDailyProgress();
   const { mutate: markRead, isPending: marking } = useMarkDailyRead();
-  const { data: groupDevotionals = [], isLoading: groupLoading } = useGroupDevotionals();
+  const { data: myGroups = [], isLoading: groupsLoading } = useMyGroups();
 
   const isReadToday = dailyDone.includes(todayDayOfMonth);
 
@@ -109,38 +110,55 @@ export default function DevocionalScreen() {
           </ScrollView>
         ) : (
           <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
-            <Text style={[styles.dateLabel, { color: theme.textMuted }]}>
-              DEVOCIONAIS DA IGREJA
-            </Text>
 
-            {groupLoading ? (
-              <ActivityIndicator style={{ marginTop: 32 }} color={theme.accent} />
-            ) : groupDevotionals.length === 0 ? (
+            {/* Actions */}
+            <View style={styles.groupActions}>
+              <Pressable
+                style={[styles.actionBtn, { backgroundColor: theme.text }]}
+                onPress={() => router.push('/devocional/grupo/criar' as never)}
+              >
+                <Plus size={16} color={theme.background} strokeWidth={2.5} />
+                <Text style={[styles.actionBtnText, { color: theme.background }]}>Criar grupo</Text>
+              </Pressable>
+              <Pressable
+                style={[styles.actionBtn, styles.actionBtnOutline, { borderColor: theme.elevated }]}
+                onPress={() => router.push('/grupo/entrar' as never)}
+              >
+                <Users size={16} color={theme.text} strokeWidth={1.8} />
+                <Text style={[styles.actionBtnText, { color: theme.text }]}>Entrar com código</Text>
+              </Pressable>
+            </View>
+
+            <Text style={[styles.dateLabel, { color: theme.textMuted }]}>MEUS GRUPOS</Text>
+
+            {groupsLoading ? (
+              <ActivityIndicator style={{ marginTop: 20 }} color={theme.accent} />
+            ) : myGroups.length === 0 ? (
               <View style={[styles.emptyBox, { backgroundColor: theme.surface }]}>
-                <Users size={32} color={theme.textMuted} strokeWidth={1.4} />
+                <BookOpen size={28} color={theme.textMuted} strokeWidth={1.4} />
                 <Text style={[styles.emptyText, { color: theme.textMuted }]}>
-                  Nenhum devocional em grupo disponível ainda.
+                  Você ainda não participa de nenhum grupo.{'\n'}Crie um ou entre com um código de convite.
                 </Text>
               </View>
             ) : (
-              groupDevotionals.map((d) => (
+              myGroups.map((g) => (
                 <Pressable
-                  key={d.id}
+                  key={g.id}
                   style={[styles.groupCard, { backgroundColor: theme.surface }]}
-                  onPress={() => router.push(`/devocional/${d.id}` as never)}
+                  onPress={() => router.push(`/devocional/grupo/${g.id}` as never)}
                 >
                   <View style={[styles.groupIconWrap, { backgroundColor: DARK_BG }]}>
-                    <BookOpen size={20} color="#C9A84C" strokeWidth={1.6} />
+                    <Users size={18} color="#C9A84C" strokeWidth={1.6} />
                   </View>
                   <View style={styles.groupInfo}>
-                    <Text style={[styles.groupTitle, { color: theme.text }]}>{d.title}</Text>
-                    {d.description && (
-                      <Text style={[styles.groupDesc, { color: theme.textMuted }]} numberOfLines={2}>
-                        {d.description}
+                    <Text style={[styles.groupTitle, { color: theme.text }]}>{g.name}</Text>
+                    {g.description && (
+                      <Text style={[styles.groupDesc, { color: theme.textMuted }]} numberOfLines={1}>
+                        {g.description}
                       </Text>
                     )}
                     <Text style={[styles.groupMeta, { color: theme.goldText }]}>
-                      {d.total_days} dias
+                      Código: {g.invite_code}
                     </Text>
                   </View>
                   <ChevronRight size={16} color={theme.textMuted} strokeWidth={1.6} />
@@ -207,4 +225,9 @@ const styles = StyleSheet.create({
   groupTitle: { fontSize: 15, fontWeight: '600' },
   groupDesc: { fontSize: 13, lineHeight: 18 },
   groupMeta: { fontSize: 12, fontWeight: '600' },
+
+  groupActions: { flexDirection: 'row', gap: 10 },
+  actionBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, borderRadius: 12, paddingVertical: 13 },
+  actionBtnOutline: { borderWidth: 1 },
+  actionBtnText: { fontSize: 13, fontWeight: '600' },
 });

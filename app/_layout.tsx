@@ -30,6 +30,8 @@ export default function RootLayout() {
             options={{ headerShown: true, title: 'Evento', presentation: 'card' }}
           />
           <Stack.Screen name="devocional" options={{ presentation: 'card' }} />
+          <Stack.Screen name="grupo/[code]" options={{ presentation: 'card' }} />
+          <Stack.Screen name="grupo/entrar" options={{ presentation: 'card' }} />
           <Stack.Screen name="comunidade/palavras" options={{ presentation: 'card' }} />
           <Stack.Screen name="comunidade/oracao" options={{ presentation: 'card' }} />
           <Stack.Screen name="comunidade/doacoes" options={{ presentation: 'card' }} />

@@ -80,6 +80,29 @@ export interface InAppNotification {
   created_at: string;
 }
 
+export interface StudyGroup {
+  id: string;
+  church_id: string | null;
+  created_by: string;
+  name: string;
+  description: string | null;
+  invite_code: string;
+  created_at: string;
+}
+
+export interface StudyGroupMember {
+  group_id: string;
+  user_id: string;
+  joined_at: string;
+}
+
+export interface GroupDayCompletion {
+  group_id: string;
+  user_id: string;
+  day_number: number;
+  completed_at: string;
+}
+
 export interface GroupDevotional {
   id: string;
   church_id: string;
