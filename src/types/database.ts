@@ -80,6 +80,14 @@ export interface InAppNotification {
   created_at: string;
 }
 
+export interface ReadingProgress {
+  id: string;
+  user_id: string;
+  plan_id: string;
+  day_number: number;
+  completed_at: string;
+}
+
 export interface ScheduledNotification {
   id: string;
   event_id: string;

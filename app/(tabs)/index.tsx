@@ -18,6 +18,8 @@ import { router } from 'expo-router';
 import { generatePixPayload } from '@/lib/pix';
 import { useLatestWeeklyMessage } from '@/features/weekly-message/hooks/use-weekly-message';
 import { useUpcomingEvents } from '@/features/events/hooks/use-events';
+import { useReadingProgress } from '@/features/reading/hooks/use-reading';
+import { FUNDAMENTOS_30 } from '@/lib/reading-plans';
 import { useAuthStore } from '@/stores/auth-store';
 import { useChurchTheme } from '@/theme/ChurchThemeProvider';
 import { useNotificationsStore } from '@/stores/notifications-store';
@@ -70,6 +72,11 @@ export default function HomeScreen() {
   }, [profile?.name, church?.name]);
 
   const displayEvents = events?.length ? events : MOCK_EVENTS;
+
+  const { data: completedDays = [] } = useReadingProgress(FUNDAMENTOS_30.id);
+  const readingDoneCount = completedDays.length;
+  const readingCurrentDay = Math.min(readingDoneCount + 1, FUNDAMENTOS_30.totalDays);
+  const readingCurrentTitle = FUNDAMENTOS_30.days[readingCurrentDay - 1].title;
 
   async function copyPix() {
     const amountFormatted = amount ? parseFloat(amount).toFixed(2) : undefined;
@@ -179,6 +186,32 @@ export default function HomeScreen() {
               </Pressable>
             ))
           )}
+        </View>
+
+        {/* Plano de Leitura */}
+        <View style={[styles.section, { backgroundColor: theme.background }]}>
+          <Text style={[styles.sectionTitle, { color: theme.text, fontFamily: SERIF_MED, marginBottom: 10 }]}>
+            Plano de Leitura
+          </Text>
+          <Pressable
+            style={[styles.readingCard, { backgroundColor: theme.surface }]}
+            onPress={() => router.push('/leitura' as never)}
+          >
+            <View style={styles.readingInfo}>
+              <Text style={[styles.readingDay, { color: theme.textMuted }]}>
+                DIA {readingCurrentDay} DE {FUNDAMENTOS_30.totalDays}
+              </Text>
+              <Text style={[styles.readingTitle, { color: theme.text }]} numberOfLines={1}>
+                {readingCurrentTitle}
+              </Text>
+              <View style={[styles.readingTrack, { backgroundColor: theme.elevated }]}>
+                <View
+                  style={[styles.readingFill, { width: `${(readingDoneCount / FUNDAMENTOS_30.totalDays) * 100}%` }]}
+                />
+              </View>
+            </View>
+            <ChevronRight size={18} color={theme.textMuted} strokeWidth={1.6} />
+          </Pressable>
         </View>
 
       </ScrollView>
@@ -402,4 +435,16 @@ const styles = StyleSheet.create({
   },
   copyText: { color: '#fff', fontSize: 15, fontWeight: '600' },
   pixNote: { fontSize: 13, lineHeight: 19 },
+  readingCard: {
+    borderRadius: 14,
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  readingInfo: { flex: 1, gap: 4 },
+  readingDay: { fontSize: 10, fontWeight: '700', letterSpacing: 1.5 },
+  readingTitle: { fontSize: 16, fontWeight: '500' },
+  readingTrack: { height: 4, borderRadius: 2, overflow: 'hidden', marginTop: 6 },
+  readingFill: { height: '100%', backgroundColor: '#C9A84C', borderRadius: 2 },
 });
