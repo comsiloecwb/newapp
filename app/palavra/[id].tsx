@@ -52,7 +52,7 @@ export default function PalavraDetailScreen() {
 
           {/* Resumo */}
           <View style={[styles.summaryBox, { backgroundColor: theme.surface }]}>
-            <Text style={[styles.summaryLabel, { color: GOLD }]}>RESUMO</Text>
+            <Text style={[styles.summaryLabel, { color: theme.goldText }]}>RESUMO</Text>
             <Text style={[styles.summaryText, { color: theme.text, fontFamily: SERIF_REG }]}>
               {palavra.summary}
             </Text>

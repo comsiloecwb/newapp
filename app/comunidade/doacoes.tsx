@@ -66,7 +66,7 @@ export default function DoacoesScreen() {
             <View key={d.id} style={[styles.card, { backgroundColor: theme.surface }]}>
               <View style={styles.cardTop}>
                 <View style={[styles.tag, { backgroundColor: GOLD + '20' }]}>
-                  <Text style={[styles.tagText, { color: GOLD }]}>{d.tag}</Text>
+                  <Text style={[styles.tagText, { color: theme.goldText }]}>{d.tag}</Text>
                 </View>
                 <Text style={[styles.cardTitle, { color: theme.text, fontFamily: SERIF }]}>{d.title}</Text>
               </View>
@@ -76,7 +76,7 @@ export default function DoacoesScreen() {
               {d.total > 0 && (
                 <>
                   <View style={[styles.progressBg, { backgroundColor: theme.elevated }]}>
-                    <View style={[styles.progressFill, { backgroundColor: GOLD, width: `${(d.collected / d.total) * 100}%` }]} />
+                    <View style={[styles.progressFill, { backgroundColor: theme.goldText, width: `${(d.collected / d.total) * 100}%` }]} />
                   </View>
                   <Text style={[styles.progressLabel, { color: theme.textMuted }]}>{d.collected} de {d.total} coletadas</Text>
                 </>

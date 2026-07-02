@@ -11,7 +11,6 @@ import { useAuthStore } from '@/stores/auth-store';
 import { useChurchTheme } from '@/theme/ChurchThemeProvider';
 import { NotificationsSheet } from '@/features/notifications/components/NotificationsSheet';
 
-const GOLD = '#C9A84C';
 const SERIF = 'PlayfairDisplay_500Medium';
 
 function HeaderLeft() {
@@ -36,7 +35,7 @@ function BellButton() {
     <Pressable onPress={open} style={styles.bellButton} hitSlop={8}>
       <Bell size={21} color={theme.text} strokeWidth={1.6} />
       {unreadCount > 0 && (
-        <View style={[styles.badge, { backgroundColor: GOLD }]}>
+        <View style={[styles.badge, { backgroundColor: theme.goldText }]}>
           <Text style={styles.badgeText}>
             {unreadCount > 99 ? '99+' : unreadCount}
           </Text>
@@ -63,8 +62,8 @@ export default function TabsLayout() {
           headerLeft: () => <HeaderLeft />,
           headerTitle: () => null,
           headerRight: () => <BellButton />,
-          tabBarActiveTintColor: GOLD,
-          tabBarInactiveTintColor: '#999999',
+          tabBarActiveTintColor: theme.goldText,
+          tabBarInactiveTintColor: '#666666',
           tabBarStyle: {
             backgroundColor: '#FFFFFF',
             borderTopWidth: StyleSheet.hairlineWidth,

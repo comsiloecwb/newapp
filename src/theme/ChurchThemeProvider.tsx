@@ -11,6 +11,7 @@ export interface ChurchTheme {
   elevated: string;
   text: string;
   textMuted: string;
+  goldText: string;
 }
 
 const DEFAULT_THEME: ChurchTheme = {
@@ -22,7 +23,8 @@ const DEFAULT_THEME: ChurchTheme = {
   surface: '#F5F0E8',
   elevated: '#EDE8DF',
   text: '#1C1917',
-  textMuted: '#9C8C7A',
+  textMuted: '#6E5E50',
+  goldText: '#7D6300',
 };
 
 const ChurchThemeContext = createContext<ChurchTheme>(DEFAULT_THEME);
@@ -39,7 +41,8 @@ export function ChurchThemeProvider({ children }: { children: ReactNode }) {
     surface: '#F5F0E8',
     elevated: '#EDE8DF',
     text: '#1C1917',
-    textMuted: '#9C8C7A',
+    textMuted: '#6E5E50',
+    goldText: '#7D6300',
   }), [church]);
 
   return (

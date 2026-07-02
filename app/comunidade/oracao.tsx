@@ -14,7 +14,6 @@ import { Stack } from 'expo-router';
 import { Heart, Lock, Plus, Users, X } from 'lucide-react-native';
 import { useChurchTheme } from '@/theme/ChurchThemeProvider';
 
-const GOLD = '#C9A84C';
 const DARK_BG = '#0A1628';
 const SERIF = 'PlayfairDisplay_500Medium';
 
@@ -83,9 +82,9 @@ export default function OracaoScreen() {
             <Text style={[styles.sub, { color: theme.textMuted }]}>
               Compartilhe com a comunidade ou só com a liderança.
             </Text>
-            <Pressable style={[styles.addBtn, { borderColor: GOLD }]} onPress={() => setModalOpen(true)}>
-              <Plus size={13} color={GOLD} strokeWidth={2.5} />
-              <Text style={[styles.addBtnText, { color: GOLD }]}>Pedir</Text>
+            <Pressable style={[styles.addBtn, { borderColor: theme.goldText }]} onPress={() => setModalOpen(true)}>
+              <Plus size={13} color={theme.goldText} strokeWidth={2.5} />
+              <Text style={[styles.addBtnText, { color: theme.goldText }]}>Pedir</Text>
             </Pressable>
           </View>
 
@@ -119,23 +118,23 @@ export default function OracaoScreen() {
           <Text style={[styles.optionLabel, { color: theme.text }]}>Quem pode ver?</Text>
           <View style={styles.optionRow}>
             <Pressable
-              style={[styles.optionBtn, { borderColor: visibility === 'community' ? GOLD : theme.elevated, backgroundColor: visibility === 'community' ? GOLD + '15' : 'transparent' }]}
+              style={[styles.optionBtn, { borderColor: visibility === 'community' ? theme.goldText : theme.elevated, backgroundColor: visibility === 'community' ? theme.goldText + '15' : 'transparent' }]}
               onPress={() => setVisibility('community')}
             >
-              <Users size={15} color={visibility === 'community' ? GOLD : theme.textMuted} strokeWidth={1.6} />
-              <Text style={[styles.optionBtnText, { color: visibility === 'community' ? GOLD : theme.textMuted }]}>Comunidade</Text>
+              <Users size={15} color={visibility === 'community' ? theme.goldText : theme.textMuted} strokeWidth={1.6} />
+              <Text style={[styles.optionBtnText, { color: visibility === 'community' ? theme.goldText : theme.textMuted }]}>Comunidade</Text>
             </Pressable>
             <Pressable
-              style={[styles.optionBtn, { borderColor: visibility === 'leaders' ? GOLD : theme.elevated, backgroundColor: visibility === 'leaders' ? GOLD + '15' : 'transparent' }]}
+              style={[styles.optionBtn, { borderColor: visibility === 'leaders' ? theme.goldText : theme.elevated, backgroundColor: visibility === 'leaders' ? theme.goldText + '15' : 'transparent' }]}
               onPress={() => setVisibility('leaders')}
             >
-              <Lock size={15} color={visibility === 'leaders' ? GOLD : theme.textMuted} strokeWidth={1.6} />
-              <Text style={[styles.optionBtnText, { color: visibility === 'leaders' ? GOLD : theme.textMuted }]}>Só liderança</Text>
+              <Lock size={15} color={visibility === 'leaders' ? theme.goldText : theme.textMuted} strokeWidth={1.6} />
+              <Text style={[styles.optionBtnText, { color: visibility === 'leaders' ? theme.goldText : theme.textMuted }]}>Só liderança</Text>
             </Pressable>
           </View>
 
           <Pressable style={styles.anonRow} onPress={() => setAnonymous((v) => !v)}>
-            <View style={[styles.checkbox, { borderColor: anonymous ? GOLD : theme.elevated, backgroundColor: anonymous ? GOLD : 'transparent' }]}>
+            <View style={[styles.checkbox, { borderColor: anonymous ? theme.goldText : theme.elevated, backgroundColor: anonymous ? theme.goldText : 'transparent' }]}>
               {anonymous && <Text style={styles.checkmark}>✓</Text>}
             </View>
             <Text style={[styles.anonText, { color: theme.text }]}>Enviar como anônimo</Text>
@@ -174,8 +173,8 @@ function PrayerCard({ prayer, onToggle, theme }: { prayer: Prayer; onToggle: (id
         </View>
       </View>
       <Pressable onPress={() => onToggle(prayer.id)} style={styles.likeBtn} hitSlop={8}>
-        <Heart size={17} color={prayer.liked ? GOLD : theme.textMuted} fill={prayer.liked ? GOLD : 'transparent'} strokeWidth={1.6} />
-        <Text style={[styles.likeCount, { color: prayer.liked ? GOLD : theme.textMuted }]}>{prayer.likes}</Text>
+        <Heart size={17} color={prayer.liked ? theme.goldText : theme.textMuted} fill={prayer.liked ? theme.goldText : 'transparent'} strokeWidth={1.6} />
+        <Text style={[styles.likeCount, { color: prayer.liked ? theme.goldText : theme.textMuted }]}>{prayer.likes}</Text>
       </Pressable>
     </View>
   );

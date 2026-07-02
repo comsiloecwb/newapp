@@ -5,9 +5,7 @@ import { ChevronRight } from 'lucide-react-native';
 import { useChurchTheme } from '@/theme/ChurchThemeProvider';
 
 const DARK_BG = '#160A2E';
-const GOLD = '#C9A84C';
 const SERIF = 'PlayfairDisplay_500Medium';
-const SERIF_REG = 'PlayfairDisplay_400Regular';
 
 export type Palavra = {
   id: string;
@@ -92,7 +90,7 @@ export default function PalavrasScreen() {
               onPress={() => router.push(`/palavra/${p.id}` as never)}
             >
               <View style={styles.cardMain}>
-                <Text style={[styles.reference, { color: GOLD }]}>{p.reference}</Text>
+                <Text style={[styles.reference, { color: theme.goldText }]}>{p.reference}</Text>
                 <Text style={[styles.title, { color: theme.text, fontFamily: SERIF }]} numberOfLines={2}>
                   {p.title}
                 </Text>

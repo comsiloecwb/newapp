@@ -97,7 +97,7 @@ export default function HomeScreen() {
             <Pressable onPress={openNotifications} style={styles.bellWrap} hitSlop={8}>
               <Bell size={20} color="rgba(255,255,255,0.75)" strokeWidth={1.6} />
               {unreadCount > 0 && (
-                <View style={styles.bellBadge}>
+                <View style={[styles.bellBadge, { backgroundColor: theme.goldText }]}>
                   <Text style={styles.bellBadgeText}>{unreadCount > 9 ? '9+' : unreadCount}</Text>
                 </View>
               )}
@@ -148,12 +148,12 @@ export default function HomeScreen() {
               Próximos Eventos
             </Text>
             <Pressable onPress={() => router.push('/(tabs)/calendar')} hitSlop={8}>
-              <Text style={[styles.seeAll, { color: GOLD }]}>Ver todos</Text>
+              <Text style={[styles.seeAll, { color: theme.goldText }]}>Ver todos</Text>
             </Pressable>
           </View>
 
           {eventsLoading ? (
-            <ActivityIndicator color={GOLD} style={{ marginTop: 12 }} />
+            <ActivityIndicator color={theme.goldText} style={{ marginTop: 12 }} />
           ) : (
             displayEvents.map((event) => (
               <Pressable
@@ -206,10 +206,10 @@ export default function HomeScreen() {
               return (
                 <Pressable
                   key={val}
-                  style={[styles.amountChip, { borderColor: selected ? GOLD : theme.elevated, backgroundColor: selected ? GOLD + '18' : 'transparent' }]}
+                  style={[styles.amountChip, { borderColor: selected ? theme.goldText : theme.elevated, backgroundColor: selected ? GOLD + '18' : 'transparent' }]}
                   onPress={() => setAmount(val)}
                 >
-                  <Text style={[styles.amountText, { color: selected ? GOLD : theme.text }]}>R$ {val}</Text>
+                  <Text style={[styles.amountText, { color: selected ? theme.goldText : theme.text }]}>R$ {val}</Text>
                 </Pressable>
               );
             })}
@@ -217,7 +217,7 @@ export default function HomeScreen() {
 
           {/* Valor personalizado */}
           <Pressable
-            style={[styles.amountInputWrap, { backgroundColor: theme.surface, borderColor: amount && !AMOUNTS.includes(amount) ? GOLD : theme.elevated }]}
+            style={[styles.amountInputWrap, { backgroundColor: theme.surface, borderColor: amount && !AMOUNTS.includes(amount) ? theme.goldText : theme.elevated }]}
             onPress={() => amountRef.current?.focus()}
           >
             <Text style={[styles.amountPrefix, { color: theme.textMuted }]}>R$</Text>
@@ -233,7 +233,7 @@ export default function HomeScreen() {
           </Pressable>
 
           {/* Copiar payload */}
-          <Pressable style={[styles.copyBtn, { backgroundColor: copied ? GOLD : DARK_BG }]} onPress={copyPix}>
+          <Pressable style={[styles.copyBtn, { backgroundColor: copied ? theme.goldText : DARK_BG }]} onPress={copyPix}>
             <Copy size={16} color="#fff" strokeWidth={2} />
             <Text style={styles.copyText}>
               {copied
@@ -286,7 +286,6 @@ const styles = StyleSheet.create({
     minWidth: 14,
     height: 14,
     borderRadius: 7,
-    backgroundColor: GOLD,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 2,
