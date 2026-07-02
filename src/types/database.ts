@@ -80,6 +80,27 @@ export interface InAppNotification {
   created_at: string;
 }
 
+export interface GroupDevotional {
+  id: string;
+  church_id: string;
+  title: string;
+  description: string | null;
+  total_days: number;
+  published: boolean;
+  created_at: string;
+}
+
+export interface GroupDevotionalDay {
+  id: string;
+  devotional_id: string;
+  day_number: number;
+  title: string;
+  passage: string;
+  verse: string;
+  reflection: string;
+  prayer: string | null;
+}
+
 export interface ReadingProgress {
   id: string;
   user_id: string;

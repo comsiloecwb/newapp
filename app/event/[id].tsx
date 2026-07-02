@@ -80,13 +80,7 @@ export default function EventDetailScreen() {
   const isRegistered = registration?.status === 'confirmed';
   const isCheckedIn = Boolean(registration?.checked_in_at);
 
-  // Check-in window: 2h before start until 8h after start
-  const canCheckIn = (() => {
-    if (!event || !isRegistered || isCheckedIn) return false;
-    const now = Date.now();
-    const start = new Date(event.start_at).getTime();
-    return now >= start - 2 * 60 * 60 * 1000 && now <= start + 8 * 60 * 60 * 1000;
-  })();
+  const canCheckIn = isRegistered && !isCheckedIn;
 
   function handleCta() {
     if (!event) return;

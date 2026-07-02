@@ -2,3 +2,5 @@
 CREATE POLICY profiles_insert_self ON profiles
   FOR INSERT
   WITH CHECK (id = auth.uid());
+
+
