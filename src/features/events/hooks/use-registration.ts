@@ -70,6 +70,29 @@ export function useCancelRsvp() {
   });
 }
 
+export function useCheckIn() {
+  const qc = useQueryClient();
+  const userId = useAuthStore((s) => s.profile?.id);
+
+  return useMutation({
+    mutationFn: async ({ registrationId, eventId }: { registrationId: string; eventId: string }) => {
+      const { error } = await supabase
+        .from('registrations')
+        .update({ checked_in_at: new Date().toISOString() })
+        .eq('id', registrationId)
+        .eq('user_id', userId!);
+      if (error) throw error;
+      return eventId;
+    },
+    onSuccess: (eventId) => {
+      qc.invalidateQueries({ queryKey: ['registration', eventId] });
+    },
+    onError: (err: Error) => {
+      Alert.alert('Erro', err.message);
+    },
+  });
+}
+
 export function useStripeCheckout() {
   const profile = useAuthStore((s) => s.profile);
 

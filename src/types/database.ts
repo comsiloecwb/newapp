@@ -56,6 +56,7 @@ export interface Registration {
   event_id: string;
   status: RegistrationStatus;
   payment_id: string | null;
+  checked_in_at: string | null;
 }
 
 export interface Payment {

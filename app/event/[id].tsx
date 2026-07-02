@@ -16,6 +16,7 @@ import {
   useMyRegistration,
   useRsvp,
   useCancelRsvp,
+  useCheckIn,
   useStripeCheckout,
 } from '@/features/events/hooks/use-registration';
 import { isSupabaseConfigured } from '@/lib/supabase';
@@ -49,6 +50,7 @@ export default function EventDetailScreen() {
   const { data: registration } = useMyRegistration(id);
   const { mutate: rsvp, isPending: rsvping } = useRsvp();
   const { mutate: cancel, isPending: cancelling } = useCancelRsvp();
+  const { mutate: checkIn, isPending: checkingIn } = useCheckIn();
   const { mutate: checkout, isPending: checkingOut } = useStripeCheckout();
 
   const mockEvent = MOCK_EVENTS.find((e) => e.id === id);
@@ -76,6 +78,15 @@ export default function EventDetailScreen() {
   }
 
   const isRegistered = registration?.status === 'confirmed';
+  const isCheckedIn = Boolean(registration?.checked_in_at);
+
+  // Check-in window: 2h before start until 8h after start
+  const canCheckIn = (() => {
+    if (!event || !isRegistered || isCheckedIn) return false;
+    const now = Date.now();
+    const start = new Date(event.start_at).getTime();
+    return now >= start - 2 * 60 * 60 * 1000 && now <= start + 8 * 60 * 60 * 1000;
+  })();
 
   function handleCta() {
     if (!event) return;
@@ -173,15 +184,37 @@ export default function EventDetailScreen() {
         {isSupabaseConfigured ? (
           isRegistered ? (
             <View style={styles.ctaArea}>
-              <View style={[styles.confirmedBadge, { backgroundColor: '#16A34A18' }]}>
-                <Text style={styles.confirmedText}>✓  Presença confirmada</Text>
-              </View>
+              {isCheckedIn ? (
+                <View style={[styles.confirmedBadge, { backgroundColor: '#16A34A18' }]}>
+                  <Text style={styles.confirmedText}>
+                    ✓  Check-in realizado às{' '}
+                    {new Date(registration!.checked_in_at!).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                  </Text>
+                </View>
+              ) : (
+                <>
+                  <View style={[styles.confirmedBadge, { backgroundColor: '#16A34A18' }]}>
+                    <Text style={styles.confirmedText}>✓  Presença confirmada</Text>
+                  </View>
+                  {canCheckIn && (
+                    <Pressable
+                      style={[styles.cta, { backgroundColor: '#16A34A' }, checkingIn && styles.ctaDisabled]}
+                      onPress={() => checkIn({ registrationId: registration!.id, eventId: event!.id })}
+                      disabled={checkingIn}
+                    >
+                      <Text style={[styles.ctaText, { color: '#fff' }]}>
+                        {checkingIn ? 'Registrando...' : 'Fazer check-in'}
+                      </Text>
+                    </Pressable>
+                  )}
+                </>
+              )}
               <Pressable
                 onPress={handleCancel}
-                disabled={cancelling}
+                disabled={cancelling || isCheckedIn}
                 style={styles.cancelLink}
               >
-                <Text style={[styles.cancelLinkText, { color: theme.textMuted }]}>
+                <Text style={[styles.cancelLinkText, { color: isCheckedIn ? theme.elevated : theme.textMuted }]}>
                   {cancelling ? 'Cancelando...' : 'Cancelar inscrição'}
                 </Text>
               </Pressable>
