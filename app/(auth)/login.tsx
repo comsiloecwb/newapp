@@ -67,19 +67,19 @@ export default function LoginScreen() {
   }, [setSession]);
 
   async function loadProfileAndNavigate(userId: string) {
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles').select('*').eq('id', userId).single();
-    if (profileError || !profile) {
-      Alert.alert('Erro', `Perfil não encontrado (${profileError?.code})`);
+    const { data: user, error: userError } = await supabase
+      .from('users').select('*').eq('id', userId).single();
+    if (userError || !user) {
+      Alert.alert('Erro', `Perfil não encontrado (${userError?.code})`);
       return;
     }
-    const { data: church, error: churchError } = await supabase
-      .from('churches').select('*').eq('id', profile.church_id).single();
-    if (churchError || !church) {
+    const { data: tenant, error: tenantError } = await supabase
+      .from('tenants').select('*').eq('id', user.tenant_id).single();
+    if (tenantError || !tenant) {
       Alert.alert('Erro', 'Igreja não encontrada');
       return;
     }
-    setSession(profile, church);
+    setSession(user, tenant);
     router.replace('/(tabs)');
   }
 

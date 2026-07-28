@@ -23,9 +23,9 @@ export function WeeklyMessageCard() {
       <Text style={[styles.label, { color: theme.accent }]}>PALAVRA DA SEMANA</Text>
       {data ? (
         <>
-          <Text style={[styles.title, { color: theme.text, fontFamily: SERIF_MEDIUM }]}>{data.title}</Text>
+          <Text style={[styles.title, { color: theme.text, fontFamily: SERIF_MEDIUM }]}>{data.titulo}</Text>
           <Text style={[styles.content, { color: theme.textMuted }]} numberOfLines={3}>
-            {data.content}
+            {data.texto}
           </Text>
           <Pressable style={styles.learnMore}>
             <Text style={[styles.learnMoreText, { color: theme.accent }]}>

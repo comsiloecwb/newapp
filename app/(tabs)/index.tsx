@@ -35,9 +35,9 @@ const PIX_CITY = 'Sao Paulo';             // ← cidade (max 15 chars)
 const AMOUNTS = ['50', '100', '200', '500'];
 
 const MOCK_EVENTS = [
-  { id: 'm1', title: 'Culto de Domingo', start_at: new Date(Date.now() + 86400000).toISOString(), location: 'Templo Principal' },
-  { id: 'm2', title: 'Reunião de Oração', start_at: new Date(Date.now() + 3 * 86400000).toISOString(), location: 'Sala 3' },
-  { id: 'm3', title: 'Louvor & Adoração', start_at: new Date(Date.now() + 5 * 86400000).toISOString(), location: 'Templo Principal' },
+  { id: 'm1', titulo: 'Culto de Domingo', start_at: new Date(Date.now() + 86400000).toISOString(), location: 'Templo Principal' },
+  { id: 'm2', titulo: 'Reunião de Oração', start_at: new Date(Date.now() + 3 * 86400000).toISOString(), location: 'Sala 3' },
+  { id: 'm3', titulo: 'Louvor & Adoração', start_at: new Date(Date.now() + 5 * 86400000).toISOString(), location: 'Templo Principal' },
 ];
 
 function formatEventDate(iso: string) {
@@ -67,9 +67,9 @@ export default function HomeScreen() {
   }, []);
 
   const firstName = useMemo(() => {
-    const name = profile?.name ?? '';
-    return name.split(' ')[0] || church?.name || 'Bem-vindo';
-  }, [profile?.name, church?.name]);
+    const name = profile?.nome ?? '';
+    return name.split(' ')[0] || church?.nome || 'Bem-vindo';
+  }, [profile?.nome, church?.nome]);
 
   const displayEvents = events?.length ? events : MOCK_EVENTS;
 
@@ -98,7 +98,7 @@ export default function HomeScreen() {
         <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
           <View style={styles.headerTop}>
             <Text style={styles.churchName}>
-              {(church?.name ?? 'Igreja Siloé').toUpperCase()}
+              {(church?.nome ?? 'Igreja Siloé').toUpperCase()}
             </Text>
             <Pressable onPress={openNotifications} style={styles.bellWrap} hitSlop={8}>
               <Bell size={20} color="rgba(255,255,255,0.75)" strokeWidth={1.6} />
@@ -121,9 +121,9 @@ export default function HomeScreen() {
               <ActivityIndicator color={GOLD} style={{ marginTop: 16 }} />
             ) : message ? (
               <>
-                <Text style={[styles.verse, { fontFamily: SERIF }]}>{message.title}</Text>
+                <Text style={[styles.verse, { fontFamily: SERIF }]}>{message.titulo}</Text>
                 <View style={styles.goldLine} />
-                <Text style={styles.reflection} numberOfLines={4}>{message.content}</Text>
+                <Text style={styles.reflection} numberOfLines={4}>{message.texto}</Text>
               </>
             ) : (
               <Text style={[styles.verse, { fontFamily: SERIF }]}>
@@ -173,7 +173,7 @@ export default function HomeScreen() {
                 </View>
                 <View style={styles.eventInfo}>
                   <Text style={[styles.eventTitle, { color: theme.text }]} numberOfLines={1}>
-                    {event.title}
+                    {event.titulo}
                   </Text>
                   {event.location && (
                     <Text style={[styles.eventLocation, { color: theme.textMuted }]} numberOfLines={1}>

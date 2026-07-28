@@ -23,13 +23,13 @@ export default function AuthCallback() {
       if (error || !data.session) { router.replace('/(auth)/login'); return; }
 
       const userId = data.session.user.id;
-      const { data: profile } = await supabase.from('profiles').select('*').eq('id', userId).single();
-      if (!profile) { router.replace('/(auth)/login'); return; }
+      const { data: user } = await supabase.from('users').select('*').eq('id', userId).single();
+      if (!user) { router.replace('/(auth)/login'); return; }
 
-      const { data: church } = await supabase.from('churches').select('*').eq('id', profile.church_id).single();
-      if (!church) { router.replace('/(auth)/login'); return; }
+      const { data: tenant } = await supabase.from('tenants').select('*').eq('id', user.tenant_id).single();
+      if (!tenant) { router.replace('/(auth)/login'); return; }
 
-      setSession(profile, church);
+      setSession(user, tenant);
       router.replace('/(tabs)');
     }
     void finish();

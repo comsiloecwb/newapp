@@ -15,12 +15,12 @@ const SERIF = 'PlayfairDisplay_500Medium';
 
 function HeaderLeft() {
   const theme = useChurchTheme();
-  const church = useAuthStore((s) => s.church);
+  const tenant = useAuthStore((s) => s.tenant);
   return (
     <View style={styles.headerLeft}>
       <Text style={[styles.star, { color: theme.text }]}>✦</Text>
       <Text style={[styles.churchLabel, { color: theme.text, fontFamily: SERIF }]} numberOfLines={1}>
-        {church?.name ?? 'App Igreja'}
+        {tenant?.nome ?? 'App Igreja'}
       </Text>
     </View>
   );

@@ -14,7 +14,6 @@ import { router } from 'expo-router';
 
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/stores/auth-store';
-import type { Church, Profile } from '@/types/database';
 
 const SERIF = 'PlayfairDisplay_500Medium';
 const BG = '#FDFCF8';
@@ -30,16 +29,16 @@ export default function RegisterScreen() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [churchCode, setChurchCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const CHURCH_ID = process.env.EXPO_PUBLIC_CHURCH_ID!;
 
   function validate() {
     const e: Record<string, string> = {};
     if (!name.trim()) e.name = 'Nome obrigatório';
     if (!email.trim()) e.email = 'E-mail obrigatório';
     if (password.length < 6) e.password = 'Mínimo 6 caracteres';
-    if (!churchCode.trim()) e.churchCode = 'Código da igreja obrigatório';
     setErrors(e);
     return Object.keys(e).length === 0;
   }
@@ -49,19 +48,7 @@ export default function RegisterScreen() {
     setLoading(true);
 
     try {
-      // 1. Busca a igreja pelo slug
-      const { data: church, error: churchError } = await supabase
-        .from('churches')
-        .select('*')
-        .eq('slug', churchCode.trim().toLowerCase())
-        .single();
-
-      if (churchError || !church) {
-        setErrors({ churchCode: 'Igreja não encontrada. Verifique o código.' });
-        return;
-      }
-
-      // 2. Cria usuário no Supabase Auth
+      // 1. Cria usuário no Supabase Auth
       const { data: authData, error: signUpError } = await supabase.auth.signUp({
         email: email.trim().toLowerCase(),
         password,
@@ -72,33 +59,45 @@ export default function RegisterScreen() {
         return;
       }
 
-      // 3. Insere perfil vinculado à igreja
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
+      // 2. Insere user com tenant_id hardcoded no build
+      const { data: newUser, error: userError } = await supabase
+        .from('users')
         .insert({
           id: authData.user.id,
-          church_id: (church as Church).id,
-          role: 'member',
-          name: name.trim(),
+          tenant_id: CHURCH_ID,
+          role: 'visitor',
+          is_lider: false,
+          nome: name.trim(),
           email: email.trim().toLowerCase(),
-          phone: null,
+          telefone: null,
           notify_new_events: true,
           notify_event_reminders: true,
         })
         .select()
         .single();
 
-      if (profileError || !profile) {
+      if (userError || !newUser) {
         Alert.alert(
           'Quase lá',
-          'Conta criada! Confirme seu e-mail e faça login para continuar.',
+          'Conta criada! Faça login para continuar.',
           [{ text: 'OK', onPress: () => router.replace('/(auth)/login') }],
         );
         return;
       }
 
-      setSession(profile as Profile, church as Church);
-      router.replace('/(tabs)');
+      // 3. Busca o tenant para montar a sessão (agora tem user, RLS passa)
+      const { data: tenant } = await supabase
+        .from('tenants')
+        .select('*')
+        .eq('id', CHURCH_ID)
+        .single();
+
+      if (tenant) {
+        setSession(newUser, tenant);
+        router.replace('/(tabs)');
+      } else {
+        router.replace('/(auth)/login');
+      }
     } finally {
       setLoading(false);
     }
@@ -117,7 +116,7 @@ export default function RegisterScreen() {
           </Pressable>
           <Text style={[styles.title, { color: TEXT, fontFamily: SERIF }]}>Criar conta</Text>
           <Text style={[styles.subtitle, { color: MUTED }]}>
-            Use o código fornecido pelo administrador da sua igreja
+            Crie sua conta para acessar o app da sua igreja
           </Text>
         </View>
 
@@ -147,16 +146,6 @@ export default function RegisterScreen() {
             placeholder="Mínimo 6 caracteres"
             secureTextEntry
             error={errors.password}
-          />
-          <Field
-            label="Código da igreja"
-            value={churchCode}
-            onChangeText={setChurchCode}
-            placeholder="ex: igreja-exemplo"
-            autoCapitalize="none"
-            autoCorrect={false}
-            error={errors.churchCode}
-            hint="Peça ao administrador da sua igreja"
           />
         </View>
 

@@ -7,7 +7,7 @@ import type { Event } from '@/types/database';
 type EventFilter = 'upcoming' | 'past';
 
 export function useEvents(filter: EventFilter = 'upcoming') {
-  const churchId = useAuthStore((s) => s.church?.id);
+  const churchId = useAuthStore((s) => s.tenant?.id);
   const now = new Date().toISOString();
 
   return useQuery({
@@ -15,9 +15,9 @@ export function useEvents(filter: EventFilter = 'upcoming') {
     enabled: Boolean(churchId) && isSupabaseConfigured,
     queryFn: async (): Promise<Event[]> => {
       let q = supabase
-        .from('events')
+        .from('eventos')
         .select('*')
-        .eq('church_id', churchId!)
+        .eq('tenant_id', churchId!)
         .eq('published', true);
 
       q =
@@ -41,17 +41,17 @@ export function useUpcomingEvents(limit = 5) {
 }
 
 export function useEventById(id: string | undefined) {
-  const churchId = useAuthStore((s) => s.church?.id);
+  const churchId = useAuthStore((s) => s.tenant?.id);
 
   return useQuery({
     queryKey: ['event', id],
     enabled: Boolean(id && churchId && isSupabaseConfigured),
     queryFn: async (): Promise<Event | null> => {
       const { data, error } = await supabase
-        .from('events')
+        .from('eventos')
         .select('*')
         .eq('id', id!)
-        .eq('church_id', churchId!)
+        .eq('tenant_id', churchId!)
         .single();
       if (error) return null;
       return data as Event;

@@ -33,18 +33,18 @@ export default function ProfileScreen() {
         {/* Avatar hero */}
         <View style={[styles.heroCard, { backgroundColor: theme.surface }]}>
           <View style={[styles.avatarRing, { borderColor: theme.accent }]}>
-            <Text style={[styles.initials, { color: theme.text }]}>{getInitials(profile?.name)}</Text>
+            <Text style={[styles.initials, { color: theme.text }]}>{getInitials(profile?.nome)}</Text>
           </View>
           <Text style={[styles.name, { color: theme.text, fontFamily: SERIF_MEDIUM }]}>
-            {profile?.name ?? 'Usuário'}
+            {profile?.nome ?? 'Usuário'}
           </Text>
           <View style={[styles.rolePill, { backgroundColor: theme.elevated }]}>
             <Text style={[styles.roleText, { color: theme.textMuted }]}>
               {(profile?.role ?? 'membro').toUpperCase()}
             </Text>
           </View>
-          {church?.name ? (
-            <Text style={[styles.churchName, { color: theme.textMuted }]}>{church.name}</Text>
+          {church?.nome ? (
+            <Text style={[styles.churchName, { color: theme.textMuted }]}>{church.nome}</Text>
           ) : null}
         </View>
 
@@ -80,7 +80,7 @@ export default function ProfileScreen() {
             </View>
             <View style={styles.infoTexts}>
               <Text style={[styles.infoLabel, { color: theme.textMuted }]}>Igreja</Text>
-              <Text style={[styles.infoValue, { color: theme.text }]}>{church?.name ?? '—'}</Text>
+              <Text style={[styles.infoValue, { color: theme.text }]}>{church?.nome ?? '—'}</Text>
             </View>
           </View>
         </View>

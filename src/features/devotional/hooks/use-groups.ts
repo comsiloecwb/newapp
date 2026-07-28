@@ -9,7 +9,7 @@ function generateInviteCode(): string {
 }
 
 const MOCK_GROUPS: StudyGroup[] = [
-  { id: 'g-mock-1', church_id: null, created_by: 'mock', name: 'Grupo Família', description: 'Devocional em família', invite_code: 'FAM001', created_at: new Date().toISOString() },
+  { id: 'g-mock-1', tenant_id: null, created_by: 'mock', name: 'Grupo Família', description: 'Devocional em família', invite_code: 'FAM001', created_at: new Date().toISOString() },
 ];
 
 // ── My groups ─────────────────────────────────────────────────────────────────
@@ -62,12 +62,12 @@ export function useGroupMembers(groupId: string) {
       if (!isSupabaseConfigured) return [{ user_id: 'mock', name: 'Você (preview)', joined_at: new Date().toISOString() }];
       const { data, error } = await supabase
         .from('study_group_members')
-        .select('user_id, joined_at, profiles(name)')
+        .select('user_id, joined_at, users(nome)')
         .eq('group_id', groupId);
       if (error) throw error;
       return (data ?? []).map((r: any) => ({
         user_id: r.user_id,
-        name: r.profiles?.name ?? 'Membro',
+        name: r.users?.nome ?? 'Membro',
         joined_at: r.joined_at,
       }));
     },
@@ -103,12 +103,12 @@ export function useCreateGroup() {
     mutationFn: async ({ name, description }: { name: string; description?: string }): Promise<StudyGroup> => {
       if (!profile) throw new Error('Não autenticado');
       if (!isSupabaseConfigured) {
-        return { id: 'new-mock', church_id: null, created_by: profile.id, name, description: description ?? null, invite_code: generateInviteCode(), created_at: new Date().toISOString() };
+        return { id: 'new-mock', tenant_id: null, created_by: profile.id, name, description: description ?? null, invite_code: generateInviteCode(), created_at: new Date().toISOString() };
       }
       const invite_code = generateInviteCode();
       const { data: group, error: groupError } = await supabase
         .from('study_groups')
-        .insert({ church_id: profile.church_id, created_by: profile.id, name, description: description || null, invite_code })
+        .insert({ tenant_id: profile.tenant_id, created_by: profile.id, name, description: description || null, invite_code })
         .select()
         .single();
       if (groupError) throw groupError;

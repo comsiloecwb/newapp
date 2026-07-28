@@ -77,7 +77,7 @@ export default function EventDetailScreen() {
     );
   }
 
-  const isRegistered = registration?.status === 'confirmed';
+  const isRegistered = registration?.status !== 'cancelado' && registration?.status != null;
   const isCheckedIn = Boolean(registration?.checked_in_at);
 
   const canCheckIn = isRegistered && !isCheckedIn;
@@ -118,7 +118,7 @@ export default function EventDetailScreen() {
         </View>
 
         {/* Title */}
-        <Text style={[styles.title, { color: theme.text, fontFamily: SERIF }]}>{event.title}</Text>
+        <Text style={[styles.title, { color: theme.text, fontFamily: SERIF }]}>{event.titulo}</Text>
 
         {/* Meta rows */}
         <View style={[styles.metaCard, { backgroundColor: theme.surface }]}>
@@ -143,13 +143,13 @@ export default function EventDetailScreen() {
               </View>
             </>
           ) : null}
-          {event.capacity ? (
+          {event.vagas_total ? (
             <>
               <View style={[styles.metaDivider, { backgroundColor: theme.elevated }]} />
               <View style={styles.metaRow}>
                 <Users size={16} color={theme.accent} strokeWidth={1.8} />
                 <Text style={[styles.metaText, { color: theme.text }]}>
-                  Capacidade: {event.capacity} pessoas
+                  Capacidade: {event.vagas_total} pessoas
                 </Text>
               </View>
             </>
@@ -157,10 +157,10 @@ export default function EventDetailScreen() {
         </View>
 
         {/* Description */}
-        {event.description ? (
+        {event.descricao ? (
           <View style={styles.descBlock}>
             <Text style={[styles.descLabel, { color: theme.textMuted }]}>SOBRE O EVENTO</Text>
-            <Text style={[styles.desc, { color: theme.text }]}>{event.description}</Text>
+            <Text style={[styles.desc, { color: theme.text }]}>{event.descricao}</Text>
           </View>
         ) : null}
 

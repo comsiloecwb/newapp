@@ -4,11 +4,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { CheckCircle2 } from 'lucide-react-native';
 import { useChurchTheme } from '@/theme/ChurchThemeProvider';
 import {
-  useGroupDevotionals,
-  useGroupDevotionalDays,
   useGroupProgress,
   useMarkGroupDay,
 } from '@/features/devotional/hooks/use-devotional';
+
+// Stubs — group_devotionals/group_devotional_days tables not yet in new schema
+function useGroupDevotionals() { return { data: [] as any[] }; }
+function useGroupDevotionalDays(_id: string) { return { data: [] as any[], isLoading: false }; }
 
 const DARK_BG = '#0A1628';
 const GREEN = '#16A34A';

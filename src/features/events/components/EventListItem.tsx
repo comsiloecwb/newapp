@@ -32,7 +32,7 @@ export function EventListItem({ event }: { event: Event }) {
         {/* Content */}
         <View style={styles.body}>
           <Text style={[styles.title, { color: theme.text, fontFamily: 'PlayfairDisplay_400Regular' }]} numberOfLines={2}>
-            {event.title}
+            {event.titulo}
           </Text>
           <Text style={[styles.meta, { color: theme.textMuted }]}>
             {formatTime(event.start_at)}

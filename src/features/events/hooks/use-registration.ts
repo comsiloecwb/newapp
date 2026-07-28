@@ -5,16 +5,16 @@ import { useAuthStore } from '@/stores/auth-store';
 import type { Registration } from '@/types/database';
 
 export function useMyRegistration(eventId: string | undefined) {
-  const userId = useAuthStore((s) => s.profile?.id);
+  const userId = useAuthStore((s) => s.user?.id);
 
   return useQuery({
     queryKey: ['registration', eventId, userId],
     enabled: Boolean(eventId && userId && isSupabaseConfigured),
     queryFn: async (): Promise<Registration | null> => {
       const { data, error } = await supabase
-        .from('registrations')
+        .from('inscricoes')
         .select('*')
-        .eq('event_id', eventId!)
+        .eq('evento_id', eventId!)
         .eq('user_id', userId!)
         .maybeSingle();
       if (error) throw error;
@@ -25,16 +25,16 @@ export function useMyRegistration(eventId: string | undefined) {
 
 export function useRsvp() {
   const qc = useQueryClient();
-  const profile = useAuthStore((s) => s.profile);
+  const user = useAuthStore((s) => s.user);
 
   return useMutation({
     mutationFn: async (eventId: string) => {
-      if (!profile) throw new Error('Não autenticado');
-      const { error } = await supabase.from('registrations').insert({
-        event_id: eventId,
-        user_id: profile.id,
-        church_id: profile.church_id,
-        status: 'confirmed',
+      if (!user) throw new Error('Não autenticado');
+      const { error } = await supabase.from('inscricoes').insert({
+        evento_id: eventId,
+        user_id: user.id,
+        tenant_id: user.tenant_id,
+        status: 'pendente',
       });
       if (error) throw error;
     },
@@ -49,13 +49,13 @@ export function useRsvp() {
 
 export function useCancelRsvp() {
   const qc = useQueryClient();
-  const userId = useAuthStore((s) => s.profile?.id);
+  const userId = useAuthStore((s) => s.user?.id);
 
   return useMutation({
     mutationFn: async ({ registrationId, eventId }: { registrationId: string; eventId: string }) => {
       const { error } = await supabase
-        .from('registrations')
-        .update({ status: 'cancelled' })
+        .from('inscricoes')
+        .update({ status: 'cancelado' })
         .eq('id', registrationId)
         .eq('user_id', userId!);
       if (error) throw error;
@@ -72,12 +72,12 @@ export function useCancelRsvp() {
 
 export function useCheckIn() {
   const qc = useQueryClient();
-  const userId = useAuthStore((s) => s.profile?.id);
+  const userId = useAuthStore((s) => s.user?.id);
 
   return useMutation({
     mutationFn: async ({ registrationId, eventId }: { registrationId: string; eventId: string }) => {
       const { error } = await supabase
-        .from('registrations')
+        .from('inscricoes')
         .update({ checked_in_at: new Date().toISOString() })
         .eq('id', registrationId)
         .eq('user_id', userId!);
@@ -94,7 +94,7 @@ export function useCheckIn() {
 }
 
 export function useStripeCheckout() {
-  const profile = useAuthStore((s) => s.profile);
+  const profile = useAuthStore((s) => s.user);
 
   return useMutation({
     mutationFn: async ({ eventId, successUrl, cancelUrl }: {
