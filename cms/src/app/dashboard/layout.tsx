@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
+import { getCmsBranding, getUserTenantBranding } from '@/lib/tenant';
 import { Sidebar } from '@/components/Sidebar';
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -18,19 +19,15 @@ export default async function DashboardLayout({ children }: { children: React.Re
     redirect('/login?error=unauthorized');
   }
 
-  let tenantNome: string | null = null;
-  if (profile.role === 'admin' && profile.tenant_id) {
-    const { data: tenant } = await supabase
-      .from('tenants')
-      .select('nome')
-      .eq('id', profile.tenant_id)
-      .single();
-    tenantNome = tenant?.nome ?? null;
-  }
+  // Superadmin vê o branding do CMS (Inovacao Pray ou o tenant fixado no env)
+  // Admin vê o branding da própria igreja
+  const branding = profile.role === 'superadmin'
+    ? await getCmsBranding()
+    : await getUserTenantBranding(profile.tenant_id);
 
   return (
     <div className="flex min-h-screen bg-stone-900">
-      <Sidebar role={profile.role as 'admin' | 'superadmin'} tenantNome={tenantNome} />
+      <Sidebar role={profile.role as 'admin' | 'superadmin'} branding={branding} />
       <main className="flex-1 overflow-auto">
         {children}
       </main>

@@ -1,14 +1,16 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
+import type { TenantBranding } from '@/lib/tenant';
 
 type UserRole = 'superadmin' | 'admin';
 
 interface SidebarProps {
   role: UserRole;
-  tenantNome: string | null;
+  branding: TenantBranding;
 }
 
 const adminLinks = [
@@ -25,7 +27,15 @@ const superadminLinks = [
   { href: '/superadmin/usuarios', label: 'Usuários', icon: '👤' },
 ];
 
-export function Sidebar({ role, tenantNome }: SidebarProps) {
+function hexToRgba(hex: string, alpha: number): string {
+  const clean = hex.replace('#', '');
+  const r = parseInt(clean.slice(0, 2), 16);
+  const g = parseInt(clean.slice(2, 4), 16);
+  const b = parseInt(clean.slice(4, 6), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+export function Sidebar({ role, branding }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
 
@@ -39,18 +49,35 @@ export function Sidebar({ role, tenantNome }: SidebarProps) {
   const isActive = (href: string) =>
     pathname === href || (href !== '/dashboard' && pathname.startsWith(href));
 
+  const activeStyle = {
+    backgroundColor: hexToRgba(branding.primary_color, 0.15),
+    color: branding.primary_color,
+  };
+
   return (
     <aside className="w-60 bg-stone-950 border-r border-stone-800 flex flex-col h-screen sticky top-0">
-      {/* Logo */}
+      {/* Logo / nome da igreja */}
       <div className="px-6 py-5 border-b border-stone-800">
-        <div className="flex items-center gap-2">
-          <span className="text-amber-400 text-lg">✦</span>
+        <div className="flex items-center gap-2.5">
+          {branding.logo_url ? (
+            <Image
+              src={branding.logo_url}
+              alt={branding.nome}
+              width={28}
+              height={28}
+              className="rounded-md object-contain flex-shrink-0"
+            />
+          ) : (
+            <span style={{ color: branding.primary_color }} className="text-lg leading-none">✦</span>
+          )}
           <span className="text-white font-semibold text-sm truncate">
-            {tenantNome ?? 'Inovacao Pray'}
+            {branding.nome}
           </span>
         </div>
         {role === 'superadmin' && (
-          <span className="mt-1 inline-block text-xs text-amber-400 font-medium">SUPERADMIN</span>
+          <span className="mt-1 inline-block text-xs font-medium" style={{ color: branding.primary_color }}>
+            SUPERADMIN
+          </span>
         )}
       </div>
 
@@ -60,9 +87,10 @@ export function Sidebar({ role, tenantNome }: SidebarProps) {
           <Link
             key={link.href}
             href={link.href}
+            style={isActive(link.href) ? activeStyle : undefined}
             className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
               isActive(link.href)
-                ? 'bg-amber-500/15 text-amber-400 font-medium'
+                ? 'font-medium'
                 : 'text-stone-400 hover:text-white hover:bg-stone-900'
             }`}
           >
@@ -82,9 +110,10 @@ export function Sidebar({ role, tenantNome }: SidebarProps) {
               <Link
                 key={link.href}
                 href={link.href}
+                style={isActive(link.href) ? activeStyle : undefined}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
                   isActive(link.href)
-                    ? 'bg-amber-500/15 text-amber-400 font-medium'
+                    ? 'font-medium'
                     : 'text-stone-400 hover:text-white hover:bg-stone-900'
                 }`}
               >
