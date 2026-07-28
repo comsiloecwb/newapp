@@ -1,54 +1,58 @@
 import Stripe from 'https://esm.sh/stripe@14?target=deno';
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import {
+  CORS_HEADERS,
+  adminClient,
+  authErrorResponse,
+  getAuthContext,
+} from '../_shared/auth.ts';
 
 const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY')!, { apiVersion: '2024-06-20' });
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
-
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+    return new Response('ok', { headers: CORS_HEADERS });
   }
 
   try {
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
-    );
-
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) throw new Error('Missing auth header');
-
-    const token = authHeader.replace('Bearer ', '');
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-    if (authError || !user) throw new Error('Unauthorized');
+    const ctx = await getAuthContext(req);
 
     const { event_id, success_url, cancel_url } = await req.json();
 
-    const { data: event, error: eventError } = await supabase
-      .from('events')
+    const db = adminClient();
+
+    const { data: evento, error: eventoError } = await db
+      .from('eventos')
       .select('*')
       .eq('id', event_id)
+      .eq('tenant_id', ctx.tenantId)
       .single();
 
-    if (eventError || !event) throw new Error('Evento não encontrado');
-    if (!event.is_paid || !event.price_cents) throw new Error('Evento não é pago');
+    if (eventoError || !evento) {
+      return new Response(JSON.stringify({ error: 'Evento não encontrado' }), {
+        status: 404,
+        headers: { 'Content-Type': 'application/json', ...CORS_HEADERS },
+      });
+    }
+    if (!evento.is_paid || !evento.price_cents) {
+      return new Response(JSON.stringify({ error: 'Evento não é pago' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json', ...CORS_HEADERS },
+      });
+    }
 
-    const { data: existingPayment } = await supabase
+    // Reutiliza sessão Stripe pendente se existir
+    const { data: existingPayment } = await db
       .from('payments')
       .select('stripe_session_id, status')
-      .eq('event_id', event_id)
-      .eq('user_id', user.id)
+      .eq('evento_id', event_id)
+      .eq('user_id', ctx.userId)
       .eq('status', 'pending')
       .maybeSingle();
 
     if (existingPayment) {
       const session = await stripe.checkout.sessions.retrieve(existingPayment.stripe_session_id);
       return new Response(JSON.stringify({ url: session.url }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...CORS_HEADERS },
       });
     }
 
@@ -57,32 +61,30 @@ Deno.serve(async (req) => {
       line_items: [{
         price_data: {
           currency: 'brl',
-          product_data: { name: event.title },
-          unit_amount: event.price_cents,
+          product_data: { name: evento.titulo },
+          unit_amount: evento.price_cents,
         },
         quantity: 1,
       }],
       mode: 'payment',
       success_url: success_url ?? 'appigreja://payment-success',
       cancel_url: cancel_url ?? 'appigreja://payment-cancel',
-      metadata: { event_id, user_id: user.id, church_id: event.church_id },
+      metadata: { event_id, user_id: ctx.userId, tenant_id: ctx.tenantId },
     });
 
-    await supabase.from('payments').insert({
-      user_id: user.id,
-      event_id,
+    await db.from('payments').insert({
+      user_id: ctx.userId,
+      evento_id: event_id,
+      tenant_id: ctx.tenantId,
       stripe_session_id: session.id,
-      amount_cents: event.price_cents,
+      amount_cents: evento.price_cents,
       status: 'pending',
     });
 
     return new Response(JSON.stringify({ url: session.url }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...CORS_HEADERS },
     });
   } catch (err) {
-    return new Response(JSON.stringify({ error: (err as Error).message }), {
-      status: 400,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    return authErrorResponse(err);
   }
 });

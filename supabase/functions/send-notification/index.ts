@@ -1,58 +1,50 @@
-import { createClient } from 'jsr:@supabase/supabase-js@2';
+import {
+  CORS_HEADERS,
+  adminClient,
+  authErrorResponse,
+  getAuthContext,
+  requireAdmin,
+  requireSameTenant,
+} from '../_shared/auth.ts';
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response('ok', {
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-      },
-    });
+    return new Response('ok', { headers: CORS_HEADERS });
   }
 
   try {
-    const { church_id, title, body, data } = await req.json();
-    if (!church_id || !title || !body) {
-      return new Response(JSON.stringify({ error: 'church_id, title e body são obrigatórios' }), { status: 400 });
+    const ctx = await getAuthContext(req);
+    requireAdmin(ctx);
+
+    const { tenant_id, title, body, data } = await req.json();
+    if (!tenant_id || !title || !body) {
+      return new Response(
+        JSON.stringify({ error: 'tenant_id, title e body são obrigatórios' }),
+        { status: 400, headers: { 'Content-Type': 'application/json', ...CORS_HEADERS } },
+      );
     }
 
-    // verify caller is admin of this church
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) return new Response(JSON.stringify({ error: 'Não autorizado' }), { status: 401 });
+    requireSameTenant(ctx, tenant_id);
 
-    const userClient = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_ANON_KEY')!,
-      { global: { headers: { Authorization: authHeader } } }
-    );
-    const { data: { user } } = await userClient.auth.getUser();
-    if (!user) return new Response(JSON.stringify({ error: 'Não autorizado' }), { status: 401 });
-
-    const { data: profile } = await userClient.from('profiles').select('role, church_id').eq('id', user.id).single();
-    if (!profile || profile.church_id !== church_id || !['admin', 'editor'].includes(profile.role)) {
-      return new Response(JSON.stringify({ error: 'Sem permissão' }), { status: 403 });
-    }
-
-    // fetch all push tokens for this church using service role
-    const adminClient = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-    );
-    const { data: profiles } = await adminClient
-      .from('profiles')
+    const db = adminClient();
+    const { data: users } = await db
+      .from('users')
       .select('push_token')
-      .eq('church_id', church_id)
+      .eq('tenant_id', tenant_id)
+      .eq('notify_new_events', true)
       .not('push_token', 'is', null);
 
-    const tokens = (profiles ?? [])
-      .map((p: { push_token: string | null }) => p.push_token)
+    const tokens = (users ?? [])
+      .map((u: { push_token: string | null }) => u.push_token)
       .filter(Boolean) as string[];
 
     if (tokens.length === 0) {
-      return new Response(JSON.stringify({ sent: 0 }), { status: 200 });
+      return new Response(JSON.stringify({ sent: 0 }), {
+        headers: { 'Content-Type': 'application/json', ...CORS_HEADERS },
+      });
     }
 
-    // send via Expo Push API in chunks of 100
+    // Expo Push API aceita até 100 mensagens por request
     const chunks: string[][] = [];
     for (let i = 0; i < tokens.length; i += 100) chunks.push(tokens.slice(i, i + 100));
 
@@ -68,9 +60,9 @@ Deno.serve(async (req) => {
     }
 
     return new Response(JSON.stringify({ sent }), {
-      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+      headers: { 'Content-Type': 'application/json', ...CORS_HEADERS },
     });
   } catch (err) {
-    return new Response(JSON.stringify({ error: String(err) }), { status: 500 });
+    return authErrorResponse(err);
   }
 });
