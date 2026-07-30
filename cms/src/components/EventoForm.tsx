@@ -47,7 +47,7 @@ export function EventoForm({ evento, action, submitLabel, onDelete }: EventoForm
   const [isPending, startTransition] = useTransition();
   const [isDeleting, startDeleting] = useTransition();
   const [isPaid, setIsPaid] = useState(evento?.is_paid ?? false);
-  const [published, setPublished] = useState(evento?.published ?? false);
+  const [published, setPublished] = useState(evento?.published ?? true);
   const [vagasTotal, setVagasTotal] = useState(evento?.vagas_total?.toString() ?? '');
   const [error, setError] = useState('');
   const [showDeleteModal, setShowDeleteModal] = useState(false);

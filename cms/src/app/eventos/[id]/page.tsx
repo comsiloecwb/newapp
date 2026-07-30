@@ -21,9 +21,17 @@ export default async function EditarEventoPage({ params }: { params: Promise<{ i
   return (
     <div className="p-8">
       <BackButton href="/eventos" label="Voltar para Eventos" />
-      <div className="mb-8">
-        <h1 className="text-white text-2xl font-semibold">Editar evento</h1>
-        <p className="text-stone-400 text-sm mt-1 truncate">{evento.titulo}</p>
+      <div className="mb-8 flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-white text-2xl font-semibold">Editar evento</h1>
+          <p className="text-stone-400 text-sm mt-1 truncate">{evento.titulo}</p>
+        </div>
+        <a
+          href={`/eventos/${id}/inscritos`}
+          className="shrink-0 text-sm bg-stone-800 hover:bg-stone-700 text-white px-4 py-2 rounded-lg transition-colors"
+        >
+          Ver inscritos →
+        </a>
       </div>
       <EventoForm
         evento={evento}
