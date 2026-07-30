@@ -9,7 +9,6 @@ async function loadSession(): Promise<{ profile: Profile; church: Church } | nul
   if (!isSupabaseConfigured) return null;
 
   const { data: sessionData } = await supabase.auth.getSession();
-  console.log('[session] supabase session:', sessionData.session?.user?.id ?? 'null');
   if (!sessionData.session) return null;
 
   const userId = sessionData.session.user.id;
@@ -19,7 +18,6 @@ async function loadSession(): Promise<{ profile: Profile; church: Church } | nul
     .select('*')
     .eq('id', userId)
     .single();
-  console.log('[session] users query:', profile?.id ?? 'null', profileError?.message ?? 'ok');
 
   if (profileError || !profile) return null;
 
@@ -28,7 +26,6 @@ async function loadSession(): Promise<{ profile: Profile; church: Church } | nul
     .select('*')
     .eq('id', profile.tenant_id)
     .single();
-  console.log('[session] tenants query:', church?.id ?? 'null', churchError?.message ?? 'ok');
 
   if (churchError || !church) return null;
 

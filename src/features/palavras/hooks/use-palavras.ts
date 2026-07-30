@@ -11,14 +11,12 @@ export function usePalavras() {
     enabled: Boolean(tenantId),
     queryFn: async (): Promise<Palavra[]> => {
       if (!isSupabaseConfigured) return [];
-      console.log('[palavras] buscando tenant_id:', tenantId);
       const { data, error } = await supabase
         .from('palavras')
         .select('*')
         .eq('tenant_id', tenantId!)
         .eq('published', true)
         .order('data', { ascending: false });
-      console.log('[palavras] resultado:', data?.length ?? 0, error?.message ?? 'ok');
       if (error) throw error;
       return (data ?? []) as Palavra[];
     },
@@ -26,8 +24,6 @@ export function usePalavras() {
 }
 
 export function usePalavra(id: string) {
-  const tenantId = useAuthStore((s) => s.tenant?.id);
-
   return useQuery({
     queryKey: ['palavra', id],
     enabled: Boolean(id),
