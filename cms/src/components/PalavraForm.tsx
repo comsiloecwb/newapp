@@ -1,7 +1,7 @@
 'use client';
 
-import { useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import { useFormStatus } from 'react-dom';
 
 interface Palavra {
   id?: string;
@@ -20,10 +20,42 @@ interface Props {
   onDelete?: (formData: FormData) => Promise<void>;
 }
 
+function SubmitButton({ label }: { label: string }) {
+  const { pending } = useFormStatus();
+  return (
+    <button
+      type="submit"
+      disabled={pending}
+      className="bg-amber-500 hover:bg-amber-400 disabled:opacity-60 disabled:cursor-not-allowed text-stone-950 font-semibold rounded-lg px-5 py-2.5 text-sm transition-colors flex items-center gap-2"
+    >
+      {pending && (
+        <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+        </svg>
+      )}
+      {pending ? 'Salvando...' : label}
+    </button>
+  );
+}
+
+function DeleteButton() {
+  const { pending } = useFormStatus();
+  return (
+    <button
+      type="submit"
+      disabled={pending}
+      className="text-red-500 hover:text-red-400 disabled:opacity-50 text-sm transition-colors"
+    >
+      {pending ? 'Excluindo...' : 'Excluir palavra'}
+    </button>
+  );
+}
+
+const INPUT = 'w-full bg-stone-900 border border-stone-800 text-white rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-amber-500 transition-colors';
+
 export function PalavraForm({ palavra, action, submitLabel, onDelete }: Props) {
   const router = useRouter();
-  const deleteRef = useRef<HTMLFormElement>(null);
-
   const today = new Date().toISOString().split('T')[0];
 
   return (
@@ -35,7 +67,7 @@ export function PalavraForm({ palavra, action, submitLabel, onDelete }: Props) {
             name="titulo"
             required
             defaultValue={palavra?.titulo ?? ''}
-            className="w-full bg-stone-900 border border-stone-800 text-white rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-amber-500 transition-colors"
+            className={INPUT}
             placeholder="Título da palavra"
           />
         </div>
@@ -46,7 +78,7 @@ export function PalavraForm({ palavra, action, submitLabel, onDelete }: Props) {
             <input
               name="pregador"
               defaultValue={palavra?.pregador ?? ''}
-              className="w-full bg-stone-900 border border-stone-800 text-white rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-amber-500 transition-colors"
+              className={INPUT}
               placeholder="Nome do pregador"
             />
           </div>
@@ -57,7 +89,7 @@ export function PalavraForm({ palavra, action, submitLabel, onDelete }: Props) {
               type="date"
               required
               defaultValue={palavra?.data ?? today}
-              className="w-full bg-stone-900 border border-stone-800 text-white rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-amber-500 transition-colors"
+              className={INPUT}
             />
           </div>
         </div>
@@ -67,7 +99,7 @@ export function PalavraForm({ palavra, action, submitLabel, onDelete }: Props) {
           <input
             name="versiculo"
             defaultValue={palavra?.versiculo ?? ''}
-            className="w-full bg-stone-900 border border-stone-800 text-white rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-amber-500 transition-colors"
+            className={INPUT}
             placeholder="Ex: João 3:16"
           />
         </div>
@@ -79,7 +111,7 @@ export function PalavraForm({ palavra, action, submitLabel, onDelete }: Props) {
             required
             defaultValue={palavra?.texto ?? ''}
             rows={8}
-            className="w-full bg-stone-900 border border-stone-800 text-white rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-amber-500 transition-colors resize-none"
+            className={`${INPUT} resize-none`}
             placeholder="Escreva o texto da palavra..."
           />
         </div>
@@ -108,27 +140,19 @@ export function PalavraForm({ palavra, action, submitLabel, onDelete }: Props) {
             >
               Cancelar
             </button>
-            <button
-              type="submit"
-              className="bg-amber-500 hover:bg-amber-400 text-stone-950 font-semibold rounded-lg px-5 py-2.5 text-sm transition-colors"
-            >
-              {submitLabel}
-            </button>
+            <SubmitButton label={submitLabel} />
           </div>
         </div>
       </form>
 
       {onDelete && (
-        <form ref={deleteRef} action={onDelete}>
-          <button
-            type="submit"
-            onClick={(e) => {
-              if (!confirm('Tem certeza que deseja excluir esta palavra?')) e.preventDefault();
-            }}
-            className="text-red-500 hover:text-red-400 text-sm transition-colors"
-          >
-            Excluir palavra
-          </button>
+        <form
+          action={onDelete}
+          onSubmit={(e) => {
+            if (!confirm('Tem certeza que deseja excluir esta palavra?')) e.preventDefault();
+          }}
+        >
+          <DeleteButton />
         </form>
       )}
     </div>

@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
+import { DeletePalavraButton } from './DeletePalavraButton';
 
 export default async function PalavrasPage() {
   const supabase = await createClient();
@@ -65,12 +66,15 @@ export default async function PalavrasPage() {
                   )}
                 </td>
                 <td className="px-6 py-4">
-                  <Link
-                    href={`/palavras/${p.id}`}
-                    className="text-stone-400 hover:text-white text-xs font-medium transition-colors"
-                  >
-                    Editar →
-                  </Link>
+                  <div className="flex items-center gap-4 justify-end">
+                    <Link
+                      href={`/palavras/${p.id}`}
+                      className="text-stone-400 hover:text-white text-xs font-medium transition-colors"
+                    >
+                      Editar →
+                    </Link>
+                    <DeletePalavraButton id={p.id} />
+                  </div>
                 </td>
               </tr>
             ))}
