@@ -11,17 +11,20 @@ async function loadSession(): Promise<{ profile: Profile; church: Church } | nul
   const { data: sessionData } = await supabase.auth.getSession();
   if (!sessionData.session) return null;
 
+  const userId = sessionData.session.user.id;
+
   const { data: profile, error: profileError } = await supabase
-    .from('profiles')
+    .from('users')
     .select('*')
+    .eq('id', userId)
     .single();
 
   if (profileError || !profile) return null;
 
   const { data: church, error: churchError } = await supabase
-    .from('churches')
+    .from('tenants')
     .select('*')
-    .eq('id', profile.church_id)
+    .eq('id', profile.tenant_id)
     .single();
 
   if (churchError || !church) return null;
