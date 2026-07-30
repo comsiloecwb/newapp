@@ -50,16 +50,34 @@ export default async function InscritosPage({ params }: { params: Promise<{ id: 
   return (
     <div className="p-8 max-w-4xl">
       {/* Header */}
-      <div className="mb-8">
-        <a href={`/eventos/${id}`} className="text-stone-400 hover:text-white text-sm transition-colors">
-          ← Editar evento
-        </a>
-        <h1 className="text-white text-2xl font-semibold mt-3">{evento.titulo}</h1>
+      <a href="/eventos" className="text-stone-400 hover:text-white text-sm transition-colors">
+        ← Voltar para Eventos
+      </a>
+      <div className="mt-4 mb-6">
+        <h1 className="text-white text-2xl font-semibold">{evento.titulo}</h1>
         <p className="text-stone-400 text-sm mt-1">
           {new Date(evento.start_at).toLocaleDateString('pt-BR', {
             day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit',
           })}
         </p>
+      </div>
+
+      {/* Tabs */}
+      <div className="flex gap-1 mb-8 bg-stone-900 border border-stone-800 rounded-xl p-1 w-fit">
+        <a
+          href={`/eventos/${id}`}
+          className="px-5 py-2 rounded-lg text-stone-400 hover:text-white text-sm font-medium transition-colors"
+        >
+          Editar
+        </a>
+        <span className="px-5 py-2 rounded-lg bg-stone-700 text-white text-sm font-medium flex items-center gap-2">
+          Inscritos
+          {ativos.length > 0 && (
+            <span className="bg-amber-500 text-stone-950 text-xs font-bold px-2 py-0.5 rounded-full">
+              {ativos.length}
+            </span>
+          )}
+        </span>
       </div>
 
       {/* Stats */}
