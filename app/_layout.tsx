@@ -37,6 +37,10 @@ export default function RootLayout() {
           <Stack.Screen name="comunidade/doacoes" options={{ presentation: 'card' }} />
           <Stack.Screen name="comunidade/fotos" options={{ presentation: 'card' }} />
           <Stack.Screen name="palavra/[id]" options={{ presentation: 'card' }} />
+          <Stack.Screen
+            name="membro/solicitar"
+            options={{ headerShown: true, title: 'Tornar-se membro', presentation: 'card' }}
+          />
         </Stack>
       </ChurchThemeProvider>
     </QueryClientProvider>

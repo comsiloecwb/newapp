@@ -1,11 +1,12 @@
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import { LogOut, Mail, Shield } from 'lucide-react-native';
+import { Clock, LogOut, Mail, Shield, UserPlus, XCircle } from 'lucide-react-native';
 
 import { isSupabaseConfigured, supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/stores/auth-store';
 import { useChurchTheme } from '@/theme/ChurchThemeProvider';
+import { useMembershipRequest } from '@/features/membership/hooks/use-membership-request';
 
 const SERIF_MEDIUM = 'PlayfairDisplay_500Medium';
 
@@ -19,6 +20,7 @@ export default function ProfileScreen() {
   const profile = useAuthStore((s) => s.profile);
   const church = useAuthStore((s) => s.church);
   const clear = useAuthStore((s) => s.clear);
+  const { status: membershipStatus } = useMembershipRequest();
 
   async function handleLogout() {
     if (isSupabaseConfigured) await supabase.auth.signOut();
@@ -85,6 +87,40 @@ export default function ProfileScreen() {
           </View>
         </View>
 
+        {/* Solicitação de membro (apenas visitantes) */}
+        {profile?.role === 'visitor' && membershipStatus === 'none' && (
+          <Pressable
+            style={[styles.membershipBtn, { backgroundColor: theme.text }]}
+            onPress={() => router.push('/membro/solicitar' as never)}
+          >
+            <UserPlus size={16} color={theme.background} strokeWidth={1.8} />
+            <Text style={[styles.membershipBtnText, { color: theme.background }]}>
+              Quero me tornar membro
+            </Text>
+          </Pressable>
+        )}
+
+        {profile?.role === 'visitor' && membershipStatus === 'pendente' && (
+          <View style={[styles.membershipStatus, { backgroundColor: theme.elevated }]}>
+            <Clock size={16} color={theme.textMuted} strokeWidth={1.8} />
+            <Text style={[styles.membershipStatusText, { color: theme.textMuted }]}>
+              Aguardando aprovação do admin
+            </Text>
+          </View>
+        )}
+
+        {profile?.role === 'visitor' && membershipStatus === 'negado' && (
+          <Pressable
+            style={[styles.membershipStatus, { backgroundColor: '#FEE2E2' }]}
+            onPress={() => router.push('/membro/solicitar' as never)}
+          >
+            <XCircle size={16} color="#DC2626" strokeWidth={1.8} />
+            <Text style={[styles.membershipStatusText, { color: '#DC2626' }]}>
+              Solicitação negada. Tente novamente.
+            </Text>
+          </Pressable>
+        )}
+
         {/* Logout */}
         <Pressable
           style={[styles.logoutBtn, { borderColor: theme.elevated }]}
@@ -146,6 +182,23 @@ const styles = StyleSheet.create({
   infoLabel: { fontSize: 11, fontWeight: '500', marginBottom: 2 },
   infoValue: { fontSize: 15 },
   separator: { height: StyleSheet.hairlineWidth, marginLeft: 48 },
+  membershipBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    borderRadius: 14,
+    padding: 15,
+  },
+  membershipBtnText: { fontSize: 14, fontWeight: '600' },
+  membershipStatus: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    borderRadius: 14,
+    padding: 15,
+  },
+  membershipStatusText: { flex: 1, fontSize: 13, fontWeight: '500' },
   logoutBtn: {
     flexDirection: 'row',
     alignItems: 'center',
