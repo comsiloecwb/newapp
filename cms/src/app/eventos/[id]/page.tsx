@@ -1,6 +1,7 @@
 import { redirect, notFound } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { EventoForm } from '@/components/EventoForm';
+import { BackButton } from '@/components/BackButton';
 import { updateEvento, deleteEvento } from '../actions';
 
 export default async function EditarEventoPage({ params }: { params: Promise<{ id: string }> }) {
@@ -19,6 +20,7 @@ export default async function EditarEventoPage({ params }: { params: Promise<{ i
 
   return (
     <div className="p-8">
+      <BackButton href="/eventos" label="Voltar para Eventos" />
       <div className="mb-8">
         <h1 className="text-white text-2xl font-semibold">Editar evento</h1>
         <p className="text-stone-400 text-sm mt-1 truncate">{evento.titulo}</p>
