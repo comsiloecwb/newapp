@@ -39,7 +39,7 @@ export async function createEvento(formData: FormData) {
   if (error) throw new Error(error.message);
 
   revalidatePath('/eventos');
-  redirect('/eventos');
+  redirect('/eventos?toast=criado');
 }
 
 export async function updateEvento(id: string, formData: FormData) {
@@ -69,12 +69,12 @@ export async function updateEvento(id: string, formData: FormData) {
   if (error) throw new Error(error.message);
 
   revalidatePath('/eventos');
-  redirect('/eventos');
+  redirect('/eventos?toast=atualizado');
 }
 
 export async function deleteEvento(id: string) {
   const db = createAdminClient();
   await db.from('eventos').delete().eq('id', id);
   revalidatePath('/eventos');
-  redirect('/eventos');
+  redirect('/eventos?toast=excluido');
 }

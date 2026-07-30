@@ -25,7 +25,7 @@ export async function createPalavra(formData: FormData) {
     data: formData.get('data') as string,
     published: formData.get('published') === 'true',
   });
-  redirect('/palavras');
+  redirect('/palavras?toast=criado');
 }
 
 export async function updatePalavra(id: string, formData: FormData) {
@@ -39,12 +39,12 @@ export async function updatePalavra(id: string, formData: FormData) {
     data: formData.get('data') as string,
     published: formData.get('published') === 'true',
   }).eq('id', id);
-  redirect('/palavras');
+  redirect('/palavras?toast=atualizado');
 }
 
 export async function deletePalavra(id: string) {
   await getAdminProfile();
   const db = createAdminClient();
   await db.from('palavras').delete().eq('id', id);
-  redirect('/palavras');
+  redirect('/palavras?toast=excluido');
 }
