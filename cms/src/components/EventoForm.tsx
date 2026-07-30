@@ -14,6 +14,7 @@ type Evento = {
   is_paid: boolean;
   price_cents: number | null;
   vagas_total: number | null;
+  vagas_alerta: number | null;
   published: boolean;
 };
 
@@ -35,6 +36,7 @@ export function EventoForm({ evento, action, submitLabel, onDelete }: EventoForm
   const [isDeleting, startDeleting] = useTransition();
   const [isPaid, setIsPaid] = useState(evento?.is_paid ?? false);
   const [published, setPublished] = useState(evento?.published ?? false);
+  const [vagasTotal, setVagasTotal] = useState(evento?.vagas_total?.toString() ?? '');
   const [error, setError] = useState('');
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -99,11 +101,34 @@ export function EventoForm({ evento, action, submitLabel, onDelete }: EventoForm
         </Field>
       </div>
 
-      <Field label="Vagas (deixe vazio para ilimitado)">
-        <input name="vagas_total" type="number" min="1"
-          defaultValue={evento?.vagas_total ?? ''}
-          className={INPUT} placeholder="Ex: 100" />
+      <Field label="Vagas totais (deixe vazio para ilimitado)">
+        <input
+          name="vagas_total"
+          type="number"
+          min="1"
+          value={vagasTotal}
+          onChange={(e) => setVagasTotal(e.target.value)}
+          className={INPUT}
+          placeholder="Ex: 100"
+        />
       </Field>
+
+      {vagasTotal && (
+        <Field label="Alertar vagas a partir de">
+          <input
+            name="vagas_alerta"
+            type="number"
+            min="1"
+            max={parseInt(vagasTotal) - 1}
+            defaultValue={evento?.vagas_alerta ?? ''}
+            className={INPUT}
+            placeholder={`Ex: 10 (exibe "10 vagas restantes" no app)`}
+          />
+          <p className="text-stone-500 text-xs mt-1">
+            Deve ser menor que o total de vagas ({vagasTotal})
+          </p>
+        </Field>
+      )}
 
       {/* Pago */}
       <div className="flex items-center gap-3">
