@@ -116,6 +116,7 @@ export default async function MembrosPage({ searchParams }: Props) {
                 <th className="text-left text-stone-400 font-medium px-6 py-4">Papel</th>
                 <th className="text-left text-stone-400 font-medium px-6 py-4">Liderança</th>
                 <th className="text-left text-stone-400 font-medium px-6 py-4">Desde</th>
+              <th className="px-6 py-4" />
               </tr>
             </thead>
             <tbody>
@@ -133,6 +134,14 @@ export default async function MembrosPage({ searchParams }: Props) {
                   </td>
                   <td className="px-6 py-4 text-stone-500">
                     {new Date(m.created_at).toLocaleDateString('pt-BR')}
+                  </td>
+                  <td className="px-6 py-4">
+                    <a
+                      href={`/membros/${m.id}`}
+                      className="text-stone-400 hover:text-white text-xs font-medium transition-colors"
+                    >
+                      Editar →
+                    </a>
                   </td>
                 </tr>
               ))}
