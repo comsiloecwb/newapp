@@ -1,7 +1,26 @@
+import { redirect } from 'next/navigation';
 import { BackButton } from '@/components/BackButton';
+import { SubmitButton } from '@/components/SubmitButton';
+import { createClient, createAdminClient } from '@/lib/supabase/server';
 import { createCelula } from '../actions';
 
-export default function NovaCelulaPage() {
+export default async function NovaCelulaPage() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect('/login');
+
+  const { data: profile } = await supabase
+    .from('users').select('role, tenant_id').eq('id', user.id).single();
+  if (!profile || !['admin', 'superadmin'].includes(profile.role)) redirect('/login');
+
+  const db = createAdminClient();
+  const { data: lideres } = await db
+    .from('users')
+    .select('id, nome')
+    .eq('tenant_id', profile.tenant_id)
+    .eq('is_lider', true)
+    .order('nome');
+
   return (
     <div className="p-8 max-w-xl">
       <BackButton href="/celulas" label="Voltar para Células" />
@@ -17,6 +36,22 @@ export default function NovaCelulaPage() {
             className="w-full bg-stone-900 border border-stone-700 text-white rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-amber-500 transition-colors"
             placeholder="Ex: Célula Centro, Jovens Sul..."
           />
+        </div>
+
+        <div className="space-y-1.5">
+          <label className="block text-stone-400 text-xs font-medium uppercase tracking-wide">Líder</label>
+          <select
+            name="lider_id"
+            className="w-full bg-stone-900 border border-stone-700 text-white rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-amber-500 transition-colors"
+          >
+            <option value="">Sem líder definido</option>
+            {(lideres ?? []).map((l) => (
+              <option key={l.id} value={l.id}>{l.nome}</option>
+            ))}
+          </select>
+          {(!lideres || lideres.length === 0) && (
+            <p className="text-stone-500 text-xs">Nenhum líder cadastrado. Defina líderes na aba Membros.</p>
+          )}
         </div>
 
         <div className="grid grid-cols-2 gap-4">
@@ -73,12 +108,7 @@ export default function NovaCelulaPage() {
           />
         </div>
 
-        <button
-          type="submit"
-          className="w-full bg-amber-500 hover:bg-amber-400 text-stone-950 font-semibold text-sm px-4 py-3 rounded-lg transition-colors"
-        >
-          Criar célula
-        </button>
+        <SubmitButton label="Criar célula" pendingLabel="Criando..." />
       </form>
     </div>
   );

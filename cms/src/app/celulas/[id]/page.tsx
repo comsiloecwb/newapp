@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import { createClient, createAdminClient } from '@/lib/supabase/server';
 import { BackButton } from '@/components/BackButton';
 import { Toast } from '@/components/Toast';
+import { SubmitButton } from '@/components/SubmitButton';
 import { updateCelula, deleteCelula, aprovarMembro, rejeitarMembro } from '../actions';
 
 const DIAS = [
@@ -30,6 +31,13 @@ export default async function CelulaDetailPage({ params }: { params: Promise<{ i
     .eq('id', id)
     .eq('tenant_id', profile.tenant_id)
     .single();
+
+  const { data: lideres } = await db
+    .from('users')
+    .select('id, nome')
+    .eq('tenant_id', profile.tenant_id)
+    .eq('is_lider', true)
+    .order('nome');
 
   if (!celula) redirect('/celulas');
 
@@ -74,6 +82,18 @@ export default async function CelulaDetailPage({ params }: { params: Promise<{ i
               className="w-full bg-stone-900 border border-stone-700 text-white rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-amber-500 transition-colors"
             />
           </div>
+          <div className="space-y-1.5">
+            <label className="block text-stone-400 text-xs font-medium uppercase tracking-wide">Líder</label>
+            <select
+              name="lider_id" defaultValue={celula.lider_id ?? ''}
+              className="w-full bg-stone-900 border border-stone-700 text-white rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-amber-500 transition-colors"
+            >
+              <option value="">Sem líder definido</option>
+              {(lideres ?? []).map((l) => (
+                <option key={l.id} value={l.id}>{l.nome}</option>
+              ))}
+            </select>
+          </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <label className="block text-stone-400 text-xs font-medium uppercase tracking-wide">Dia</label>
@@ -115,12 +135,7 @@ export default async function CelulaDetailPage({ params }: { params: Promise<{ i
               className="w-full bg-stone-900 border border-stone-700 text-white rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-amber-500 transition-colors"
             />
           </div>
-          <button
-            type="submit"
-            className="bg-amber-500 hover:bg-amber-400 text-stone-950 font-semibold text-sm px-5 py-2.5 rounded-lg transition-colors"
-          >
-            Salvar alterações
-          </button>
+          <SubmitButton label="Salvar alterações" pendingLabel="Salvando..." className="bg-amber-500 hover:bg-amber-400 disabled:opacity-60 disabled:cursor-not-allowed text-stone-950 font-semibold text-sm px-5 py-2.5 rounded-lg transition-colors" />
         </form>
       </section>
 
