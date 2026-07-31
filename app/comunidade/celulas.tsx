@@ -10,6 +10,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Stack } from 'expo-router';
 import { Clock, MapPin, Phone, Users } from 'lucide-react-native';
 import { useChurchTheme } from '@/theme/ChurchThemeProvider';
 import {
@@ -20,6 +21,7 @@ import {
 } from '@/features/celulas/hooks/use-celulas';
 import type { Celula, MembroCelula } from '@/types/database';
 
+const DARK_BG = '#0A1628';
 const SERIF = 'PlayfairDisplay_500Medium';
 
 const DIAS: Record<string, string> = {
@@ -32,7 +34,7 @@ const DIAS: Record<string, string> = {
   domingo: 'Domingo',
 };
 
-function StatusBadge({ status }: { status: MembroCelula['status']; theme: ReturnType<typeof useChurchTheme> }) {
+function StatusBadge({ status }: { status: MembroCelula['status'] }) {
   const label = status === 'aprovado' ? 'Membro' : 'Pendente';
   const color = status === 'aprovado' ? '#22c55e' : '#f59e0b';
   return (
@@ -61,7 +63,7 @@ function CelulaCard({
     <View style={[styles.card, { backgroundColor: theme.surface }]}>
       <View style={styles.cardHeader}>
         <Text style={[styles.cardNome, { color: theme.text, fontFamily: SERIF }]}>{celula.nome}</Text>
-        {membro && <StatusBadge status={membro.status} theme={theme} />}
+        {membro && <StatusBadge status={membro.status} />}
       </View>
 
       <View style={styles.infos}>
@@ -93,13 +95,11 @@ function CelulaCard({
         <Pressable style={[styles.joinBtn, { backgroundColor: theme.accent }]} onPress={onSolicitar}>
           <Text style={styles.joinBtnText}>Solicitar participação</Text>
         </Pressable>
-      ) : membro.status === 'pendente' ? (
-        <Pressable style={[styles.leaveBtn, { borderColor: theme.elevated }]} onPress={onSair}>
-          <Text style={[styles.leaveBtnText, { color: theme.textMuted }]}>Cancelar solicitação</Text>
-        </Pressable>
       ) : (
         <Pressable style={[styles.leaveBtn, { borderColor: theme.elevated }]} onPress={onSair}>
-          <Text style={[styles.leaveBtnText, { color: theme.textMuted }]}>Sair da célula</Text>
+          <Text style={[styles.leaveBtnText, { color: theme.textMuted }]}>
+            {membro.status === 'pendente' ? 'Cancelar solicitação' : 'Sair da célula'}
+          </Text>
         </Pressable>
       )}
     </View>
@@ -124,10 +124,7 @@ export default function CelulasScreen() {
       { text: 'Cancelar', style: 'cancel' },
       {
         text: 'Solicitar',
-        onPress: () =>
-          solicitar(celula.id, {
-            onError: (e: any) => Alert.alert('Erro', e?.message),
-          }),
+        onPress: () => solicitar(celula.id, { onError: (e: any) => Alert.alert('Erro', e?.message) }),
       },
     ]);
   }
@@ -144,63 +141,68 @@ export default function CelulasScreen() {
         {
           text: isPendente ? 'Cancelar' : 'Sair',
           style: 'destructive',
-          onPress: () =>
-            sair(membro.id, {
-              onError: (e: any) => Alert.alert('Erro', e?.message),
-            }),
+          onPress: () => sair(membro.id, { onError: (e: any) => Alert.alert('Erro', e?.message) }),
         },
       ]
     );
   }
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]} edges={['bottom']}>
-      <FlatList
-        data={celulas ?? []}
-        keyExtractor={(c) => c.id}
-        contentContainerStyle={styles.content}
-        showsVerticalScrollIndicator={false}
-        ListHeaderComponent={
-          <View style={styles.header}>
-            <Text style={[styles.heading, { color: theme.text, fontFamily: SERIF }]}>Células</Text>
-            <Text style={[styles.sub, { color: theme.textMuted }]}>
-              Pequenos grupos que se reúnem semanalmente.
-            </Text>
-          </View>
-        }
-        renderItem={({ item }) => (
-          <CelulaCard
-            celula={item}
-            membro={membroMap[item.id]}
-            onSolicitar={() => handleSolicitar(item)}
-            onSair={() => handleSair(item)}
-            theme={theme}
-          />
-        )}
-        ListEmptyComponent={
-          isLoading ? (
-            <ActivityIndicator color={theme.accent} style={{ marginTop: 40 }} />
-          ) : (
-            <View style={styles.empty}>
-              <Users size={48} color={theme.textMuted} strokeWidth={1} />
-              <Text style={[styles.emptyTitle, { color: theme.text }]}>Nenhuma célula cadastrada</Text>
-              <Text style={[styles.emptyMsg, { color: theme.textMuted }]}>
-                As células serão listadas aqui quando disponíveis.
+    <>
+      <Stack.Screen
+        options={{
+          headerShown: true,
+          title: 'Células',
+          headerStyle: { backgroundColor: DARK_BG },
+          headerTintColor: '#FFFFFF',
+          headerTitleStyle: { fontFamily: SERIF, fontSize: 17 },
+        }}
+      />
+      <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]} edges={['bottom']}>
+        <FlatList
+          data={celulas ?? []}
+          keyExtractor={(c) => c.id}
+          contentContainerStyle={styles.content}
+          showsVerticalScrollIndicator={false}
+          ListHeaderComponent={
+            <View style={styles.header}>
+              <Text style={[styles.sub, { color: theme.textMuted }]}>
+                Pequenos grupos que se reúnem semanalmente.
               </Text>
             </View>
-          )
-        }
-      />
-    </SafeAreaView>
+          }
+          renderItem={({ item }) => (
+            <CelulaCard
+              celula={item}
+              membro={membroMap[item.id]}
+              onSolicitar={() => handleSolicitar(item)}
+              onSair={() => handleSair(item)}
+              theme={theme}
+            />
+          )}
+          ListEmptyComponent={
+            isLoading ? (
+              <ActivityIndicator color={theme.accent} style={{ marginTop: 40 }} />
+            ) : (
+              <View style={styles.empty}>
+                <Users size={48} color={theme.textMuted} strokeWidth={1} />
+                <Text style={[styles.emptyTitle, { color: theme.text }]}>Nenhuma célula cadastrada</Text>
+                <Text style={[styles.emptyMsg, { color: theme.textMuted }]}>
+                  As células serão listadas aqui quando disponíveis.
+                </Text>
+              </View>
+            )
+          }
+        />
+      </SafeAreaView>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
   content: { padding: 20, paddingBottom: 40, gap: 12 },
-
-  header: { marginBottom: 8, gap: 6 },
-  heading: { fontSize: 28 },
+  header: { marginBottom: 4 },
   sub: { fontSize: 13, lineHeight: 19 },
 
   card: {

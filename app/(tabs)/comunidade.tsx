@@ -29,6 +29,13 @@ const SECTIONS = [
     route: '/comunidade/oracao',
   },
   {
+    key: 'celulas',
+    title: 'Células',
+    subtitle: 'Pequenos grupos que se reúnem semanalmente',
+    bg: '#1A0F28',
+    route: '/comunidade/celulas',
+  },
+  {
     key: 'doacoes',
     title: 'Ação Social',
     subtitle: 'Instituto beneficente da igreja',
