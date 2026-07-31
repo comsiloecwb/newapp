@@ -8,6 +8,13 @@ const SERIF_REG = 'PlayfairDisplay_400Regular';
 
 const SECTIONS = [
   {
+    key: 'grupos',
+    title: 'Grupos',
+    subtitle: 'Os grupos dos quais você faz parte',
+    bg: '#0F2416',
+    route: '/comunidade/grupos',
+  },
+  {
     key: 'palavras',
     title: 'Palavras',
     subtitle: 'Biblioteca de sermões e mensagens da igreja',

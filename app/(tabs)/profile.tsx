@@ -7,6 +7,8 @@ import { isSupabaseConfigured, supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/stores/auth-store';
 import { useChurchTheme } from '@/theme/ChurchThemeProvider';
 import { useMembershipRequest } from '@/features/membership/hooks/use-membership-request';
+import { LideresSelector } from '@/features/profile/components/LideresSelector';
+import { FilhosSection } from '@/features/profile/components/FilhosSection';
 
 const SERIF_MEDIUM = 'PlayfairDisplay_500Medium';
 
@@ -86,6 +88,12 @@ export default function ProfileScreen() {
             </View>
           </View>
         </View>
+
+        {/* Meu(s) líder(es) — apenas membros */}
+        {profile?.role === 'member' && <LideresSelector />}
+
+        {/* Meus filhos — apenas membros aprovados */}
+        {profile?.role === 'member' && <FilhosSection />}
 
         {/* Solicitação de membro (apenas visitantes) */}
         {profile?.role === 'visitor' && membershipStatus === 'none' && (

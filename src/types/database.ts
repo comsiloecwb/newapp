@@ -35,7 +35,8 @@ export interface Filho {
   id: string;
   user_id: string;
   nome: string;
-  data_nascimento: string | null;
+  data_nascimento: string;
+  created_at: string;
 }
 
 export interface MembershipRequest {
@@ -43,6 +44,12 @@ export interface MembershipRequest {
   user_id: string;
   tenant_id: string;
   status: MembershipStatus;
+  created_at: string;
+}
+
+export interface UserLider {
+  user_id: string;
+  lider_id: string;
   created_at: string;
 }
 
