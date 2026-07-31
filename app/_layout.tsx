@@ -45,6 +45,9 @@ export default function RootLayout() {
               name="membro/solicitar"
               options={{ headerShown: true, title: 'Tornar-se membro', presentation: 'card' }}
             />
+            <Stack.Screen name="inscricao/[id]" options={{ presentation: 'card' }} />
+            <Stack.Screen name="payment-success" options={{ presentation: 'card' }} />
+            <Stack.Screen name="payment-cancel" options={{ presentation: 'card' }} />
           </Stack>
         </ChurchThemeProvider>
       </QueryClientProvider>

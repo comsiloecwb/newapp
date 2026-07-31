@@ -1,6 +1,7 @@
 import {
-  ActivityIndicator,
   Linking,
+  ActivityIndicator,
+  Modal,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -10,6 +11,7 @@ import {
 import { useLocalSearchParams, router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Calendar, Clock, MapPin, Users } from 'lucide-react-native';
+import { useState } from 'react';
 
 import { useEventById } from '@/features/events/hooks/use-events';
 import {
@@ -19,6 +21,7 @@ import {
   useCheckIn,
   useStripeCheckout,
 } from '@/features/events/hooks/use-registration';
+import { useVagasRestantes } from '@/features/events/hooks/use-vagas';
 import { isSupabaseConfigured } from '@/lib/supabase';
 import { MOCK_EVENTS } from '@/lib/mock-data';
 import { useChurchTheme } from '@/theme/ChurchThemeProvider';
@@ -45,6 +48,7 @@ function formatPrice(cents: number) {
 export default function EventDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const theme = useChurchTheme();
+  const [modalOpen, setModalOpen] = useState(false);
 
   const { data: supabaseEvent, isLoading } = useEventById(id);
   const { data: registration } = useMyRegistration(id);
@@ -55,6 +59,8 @@ export default function EventDetailScreen() {
 
   const mockEvent = MOCK_EVENTS.find((e) => e.id === id);
   const event = isSupabaseConfigured ? (supabaseEvent ?? null) : (mockEvent ?? null);
+
+  const { data: vagasRestantes } = useVagasRestantes(event?.id, event?.vagas_total);
 
   if (isLoading && isSupabaseConfigured) {
     return (
@@ -77,23 +83,45 @@ export default function EventDetailScreen() {
     );
   }
 
-  const isRegistered = registration?.status !== 'cancelado' && registration?.status != null;
+  const isCancelado = !registration || registration.status === 'cancelado';
+  const isPendente = registration?.status === 'pendente';
+  const isPago = registration?.status === 'pago';
   const isCheckedIn = Boolean(registration?.checked_in_at);
-
-  const canCheckIn = isRegistered && !isCheckedIn;
+  const canCheckIn = isPago && !isCheckedIn;
+  const lotado = event.vagas_total != null && vagasRestantes === 0;
 
   function handleCta() {
     if (!event) return;
     if (event.is_paid) {
-      checkout(
-        { eventId: event.id, successUrl: 'appigreja://payment-success', cancelUrl: 'appigreja://payment-cancel' },
-        {
-          onSuccess: (url) => Linking.openURL(url),
-        },
-      );
+      if (lotado) return;
+      setModalOpen(true);
     } else {
       rsvp(event.id);
     }
+  }
+
+  function handleEscolherStripe() {
+    if (!event) return;
+    setModalOpen(false);
+    checkout(
+      { eventId: event.id },
+      {
+        onSuccess: ({ url, inscricaoId }) => {
+          router.push(`/inscricao/${inscricaoId}` as never);
+          Linking.openURL(url);
+        },
+      },
+    );
+  }
+
+  function handleEscolherOutrasFormas() {
+    if (!event) return;
+    setModalOpen(false);
+    rsvp(event.id, {
+      onSuccess: (inscricao) => {
+        router.push(`/inscricao/${inscricao.id}` as never);
+      },
+    });
   }
 
   function handleCancel() {
@@ -150,6 +178,7 @@ export default function EventDetailScreen() {
                 <Users size={16} color={theme.accent} strokeWidth={1.8} />
                 <Text style={[styles.metaText, { color: theme.text }]}>
                   Capacidade: {event.vagas_total} pessoas
+                  {vagasRestantes != null ? ` · ${vagasRestantes} vagas restantes` : ''}
                 </Text>
               </View>
             </>
@@ -176,7 +205,7 @@ export default function EventDetailScreen() {
 
         {/* CTA */}
         {isSupabaseConfigured ? (
-          isRegistered ? (
+          isPago ? (
             <View style={styles.ctaArea}>
               {isCheckedIn ? (
                 <View style={[styles.confirmedBadge, { backgroundColor: '#16A34A18' }]}>
@@ -213,21 +242,39 @@ export default function EventDetailScreen() {
                 </Text>
               </Pressable>
             </View>
-          ) : (
+          ) : isPendente ? (
+            <View style={styles.ctaArea}>
+              <Pressable
+                style={[styles.confirmedBadge, { backgroundColor: theme.elevated }]}
+                onPress={() => router.push(`/inscricao/${registration!.id}` as never)}
+              >
+                <Text style={[styles.confirmedText, { color: theme.textMuted }]}>
+                  ⏳  Aguardando confirmação de pagamento...
+                </Text>
+              </Pressable>
+              <Pressable onPress={handleCancel} disabled={cancelling} style={styles.cancelLink}>
+                <Text style={[styles.cancelLinkText, { color: theme.textMuted }]}>
+                  {cancelling ? 'Cancelando...' : 'Cancelar inscrição'}
+                </Text>
+              </Pressable>
+            </View>
+          ) : isCancelado ? (
             <Pressable
-              style={[styles.cta, { backgroundColor: theme.text }, ctaLoading && styles.ctaDisabled]}
+              style={[styles.cta, { backgroundColor: theme.text }, (ctaLoading || lotado) && styles.ctaDisabled]}
               onPress={handleCta}
-              disabled={ctaLoading}
+              disabled={ctaLoading || lotado}
             >
               <Text style={[styles.ctaText, { color: theme.background }]}>
-                {ctaLoading
+                {lotado
+                  ? 'Lotado'
+                  : ctaLoading
                   ? 'Aguarde...'
                   : event.is_paid
-                  ? `Comprar ingresso · ${formatPrice(event.price_cents!)}`
+                  ? 'Inscrição'
                   : 'Confirmar presença'}
               </Text>
             </Pressable>
-          )
+          ) : null
         ) : (
           <View style={[styles.confirmedBadge, { backgroundColor: theme.surface }]}>
             <Text style={[styles.confirmedText, { color: theme.textMuted }]}>
@@ -236,6 +283,49 @@ export default function EventDetailScreen() {
           </View>
         )}
       </ScrollView>
+
+      {/* Escolha da forma de pagamento */}
+      <Modal
+        visible={modalOpen}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setModalOpen(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalCard, { backgroundColor: theme.background }]}>
+            <Text style={[styles.modalTitle, { color: theme.text, fontFamily: SERIF }]}>
+              Forma de pagamento
+            </Text>
+            <Text style={[styles.modalSubtitle, { color: theme.textMuted }]}>
+              Como você prefere pagar {event.price_cents ? formatPrice(event.price_cents) : ''}?
+            </Text>
+
+            <Pressable
+              style={[styles.modalOption, { backgroundColor: theme.surface }]}
+              onPress={handleEscolherStripe}
+            >
+              <Text style={[styles.modalOptionTitle, { color: theme.text }]}>Pagar com cartão</Text>
+              <Text style={[styles.modalOptionSub, { color: theme.textMuted }]}>
+                Via Stripe — confirmação automática
+              </Text>
+            </Pressable>
+
+            <Pressable
+              style={[styles.modalOption, { backgroundColor: theme.surface }]}
+              onPress={handleEscolherOutrasFormas}
+            >
+              <Text style={[styles.modalOptionTitle, { color: theme.text }]}>Outras formas</Text>
+              <Text style={[styles.modalOptionSub, { color: theme.textMuted }]}>
+                Dinheiro, Pix manual etc. — fica pendente até a liderança confirmar
+              </Text>
+            </Pressable>
+
+            <Pressable style={styles.modalCancel} onPress={() => setModalOpen(false)}>
+              <Text style={[styles.modalCancelText, { color: theme.textMuted }]}>Cancelar</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -291,4 +381,22 @@ const styles = StyleSheet.create({
   notFound: { fontSize: 22 },
   backLink: { marginTop: 8 },
   backLinkText: { fontSize: 15 },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0,0,0,0.4)',
+  },
+  modalCard: {
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: 24,
+    gap: 12,
+  },
+  modalTitle: { fontSize: 20 },
+  modalSubtitle: { fontSize: 14, lineHeight: 20, marginBottom: 4 },
+  modalOption: { borderRadius: 14, padding: 16, gap: 3 },
+  modalOptionTitle: { fontSize: 15, fontWeight: '600' },
+  modalOptionSub: { fontSize: 12.5, lineHeight: 17 },
+  modalCancel: { alignItems: 'center', padding: 12, marginTop: 4 },
+  modalCancelText: { fontSize: 14 },
 });

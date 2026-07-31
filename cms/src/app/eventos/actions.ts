@@ -15,9 +15,14 @@ export async function createEvento(formData: FormData) {
     throw new Error('Sem permissão');
   }
 
-  const priceCents = formData.get('is_paid') === 'true'
+  const isPaid = formData.get('is_paid') === 'true';
+  const priceCents = isPaid
     ? Math.round(parseFloat(String(formData.get('price') || '0')) * 100)
     : null;
+
+  if (isPaid && (!priceCents || priceCents <= 0)) {
+    throw new Error('Informe o valor do ingresso para eventos pagos');
+  }
 
   const db = createAdminClient();
   const { error } = await db.from('eventos').insert({
@@ -47,9 +52,14 @@ export async function updateEvento(id: string, formData: FormData) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('Não autenticado');
 
-  const priceCents = formData.get('is_paid') === 'true'
+  const isPaid = formData.get('is_paid') === 'true';
+  const priceCents = isPaid
     ? Math.round(parseFloat(String(formData.get('price') || '0')) * 100)
     : null;
+
+  if (isPaid && (!priceCents || priceCents <= 0)) {
+    throw new Error('Informe o valor do ingresso para eventos pagos');
+  }
 
   const db = createAdminClient();
   const { error } = await db.from('eventos').update({

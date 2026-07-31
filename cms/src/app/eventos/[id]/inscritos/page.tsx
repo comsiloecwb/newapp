@@ -1,11 +1,6 @@
 import { redirect, notFound } from 'next/navigation';
 import { createClient, createAdminClient } from '@/lib/supabase/server';
-
-function statusLabel(status: string) {
-  if (status === 'pago') return { label: 'Pago', cls: 'bg-green-900/40 text-green-400' };
-  if (status === 'cancelado') return { label: 'Cancelado', cls: 'bg-red-900/40 text-red-400' };
-  return { label: 'Pendente', cls: 'bg-amber-900/40 text-amber-400' };
-}
+import { InscricaoStatusSelect } from './InscricaoStatusSelect';
 
 function fmt(iso: string) {
   return new Date(iso).toLocaleString('pt-BR', {
@@ -121,13 +116,12 @@ export default async function InscritosPage({ params }: { params: Promise<{ id: 
             <tbody>
               {lista.map((i, idx) => {
                 const u = i.users as { nome: string; email: string; telefone: string | null } | null;
-                const { label, cls } = statusLabel(i.status);
                 return (
                   <tr key={i.id} className={idx < lista.length - 1 ? 'border-b border-stone-800/60' : ''}>
                     <td className="px-5 py-3 text-white font-medium">{u?.nome ?? '—'}</td>
                     <td className="px-5 py-3 text-stone-400">{u?.email ?? '—'}</td>
                     <td className="px-5 py-3">
-                      <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${cls}`}>{label}</span>
+                      <InscricaoStatusSelect inscricaoId={i.id} status={i.status} />
                     </td>
                     <td className="px-5 py-3 text-stone-400">
                       {i.checked_in_at ? (

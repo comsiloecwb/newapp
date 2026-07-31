@@ -28,15 +28,20 @@ export function useRsvp() {
   const user = useAuthStore((s) => s.user);
 
   return useMutation({
-    mutationFn: async (eventId: string) => {
+    mutationFn: async (eventId: string): Promise<Registration> => {
       if (!user) throw new Error('Não autenticado');
-      const { error } = await supabase.from('inscricoes').insert({
-        evento_id: eventId,
-        user_id: user.id,
-        tenant_id: user.tenant_id,
-        status: 'pendente',
-      });
+      const { data, error } = await supabase
+        .from('inscricoes')
+        .insert({
+          evento_id: eventId,
+          user_id: user.id,
+          tenant_id: user.tenant_id,
+          status: 'pendente',
+        })
+        .select()
+        .single();
       if (error) throw error;
+      return data as Registration;
     },
     onSuccess: (_, eventId) => {
       qc.invalidateQueries({ queryKey: ['registration', eventId] });
@@ -93,21 +98,31 @@ export function useCheckIn() {
   });
 }
 
+export interface StripeCheckoutResult {
+  url: string;
+  inscricaoId: string;
+}
+
 export function useStripeCheckout() {
   const profile = useAuthStore((s) => s.user);
+  const qc = useQueryClient();
 
   return useMutation({
     mutationFn: async ({ eventId, successUrl, cancelUrl }: {
       eventId: string;
-      successUrl: string;
-      cancelUrl: string;
-    }): Promise<string> => {
+      successUrl?: string;
+      cancelUrl?: string;
+    }): Promise<StripeCheckoutResult> => {
       if (!profile) throw new Error('Não autenticado');
       const { data, error } = await supabase.functions.invoke('create-checkout-session', {
-        body: { event_id: eventId, user_id: profile.id, success_url: successUrl, cancel_url: cancelUrl },
+        body: { event_id: eventId, success_url: successUrl, cancel_url: cancelUrl },
       });
       if (error) throw error;
-      return data.url as string;
+      if (data?.error) throw new Error(data.error);
+      return { url: data.url as string, inscricaoId: data.inscricaoId as string };
+    },
+    onSuccess: (_, { eventId }) => {
+      qc.invalidateQueries({ queryKey: ['registration', eventId] });
     },
   });
 }

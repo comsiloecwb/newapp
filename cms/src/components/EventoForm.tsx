@@ -158,12 +158,14 @@ export function EventoForm({ evento, action, submitLabel, onDelete }: EventoForm
             className={`w-10 h-6 rounded-full transition-colors ${isPaid ? 'bg-amber-500' : 'bg-stone-700'}`}>
             <span className={`block w-4 h-4 bg-white rounded-full mx-1 transition-transform ${isPaid ? 'translate-x-4' : ''}`} />
           </button>
-          <span className="text-stone-300 text-sm">Evento pago</span>
+          <span className="text-stone-300 text-sm">
+            {isPaid ? 'Valor de Ingresso' : 'Entrada Livre'}
+          </span>
         </div>
 
         {isPaid && (
-          <Field label="Valor (R$)">
-            <input name="price" type="number" step="0.01" min="0"
+          <Field label="Valor (R$) *">
+            <input name="price" type="number" step="0.01" min="0.01" required
               defaultValue={evento?.price_cents ? (evento.price_cents / 100).toFixed(2) : ''}
               className={INPUT} placeholder="0,00" />
           </Field>
