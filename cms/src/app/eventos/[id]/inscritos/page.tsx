@@ -115,7 +115,8 @@ export default async function InscritosPage({ params }: { params: Promise<{ id: 
             </thead>
             <tbody>
               {lista.map((i, idx) => {
-                const u = i.users as { nome: string; email: string; telefone: string | null } | null;
+                const raw = i.users as unknown;
+                const u = (Array.isArray(raw) ? raw[0] : raw) as { nome: string; email: string; telefone: string | null } | null;
                 return (
                   <tr key={i.id} className={idx < lista.length - 1 ? 'border-b border-stone-800/60' : ''}>
                     <td className="px-5 py-3 text-white font-medium">{u?.nome ?? '—'}</td>
