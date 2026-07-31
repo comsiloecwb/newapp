@@ -28,22 +28,26 @@ export function useRsvp() {
   const user = useAuthStore((s) => s.user);
 
   return useMutation({
-    mutationFn: async (eventId: string): Promise<Registration> => {
+    mutationFn: async ({ eventId, isPaid }: { eventId: string; isPaid?: boolean }): Promise<Registration> => {
       if (!user) throw new Error('Não autenticado');
       const { data, error } = await supabase
         .from('inscricoes')
-        .insert({
-          evento_id: eventId,
-          user_id: user.id,
-          tenant_id: user.tenant_id,
-          status: 'pendente',
-        })
+        .upsert(
+          {
+            evento_id: eventId,
+            user_id: user.id,
+            tenant_id: user.tenant_id,
+            status: isPaid ? 'pendente' : 'pago',
+            checked_in_at: null,
+          },
+          { onConflict: 'user_id,evento_id' }
+        )
         .select()
         .single();
       if (error) throw error;
       return data as Registration;
     },
-    onSuccess: (_, eventId) => {
+    onSuccess: (_, { eventId }) => {
       qc.invalidateQueries({ queryKey: ['registration', eventId] });
     },
     onError: (err: Error) => {

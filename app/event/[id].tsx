@@ -96,7 +96,7 @@ export default function EventDetailScreen() {
       if (lotado) return;
       setModalOpen(true);
     } else {
-      rsvp(event.id);
+      rsvp({ eventId: event.id, isPaid: false });
     }
   }
 
@@ -117,7 +117,7 @@ export default function EventDetailScreen() {
   function handleEscolherOutrasFormas() {
     if (!event) return;
     setModalOpen(false);
-    rsvp(event.id, {
+    rsvp({ eventId: event.id, isPaid: true }, {
       onSuccess: (inscricao) => {
         router.push(`/inscricao/${inscricao.id}` as never);
       },
