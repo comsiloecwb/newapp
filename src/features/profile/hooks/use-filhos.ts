@@ -89,6 +89,6 @@ export function useFilhos() {
     addFilho: addFilho.mutate,
     updateFilho: updateFilho.mutate,
     deleteFilho: deleteFilho.mutate,
-    isSaving: addFilho.isPending || updateFilho.isPending,
+    isSaving: addFilho.isPending || updateFilho.isPending || deleteFilho.isPending,
   };
 }
