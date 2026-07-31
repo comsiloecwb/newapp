@@ -67,6 +67,11 @@ function CelulaCard({
       </View>
 
       <View style={styles.infos}>
+        {celula.lider_nome && (
+          <View style={styles.infoRow}>
+            <Text style={[styles.infoText, { color: theme.textMuted }]}>👤 {celula.lider_nome}</Text>
+          </View>
+        )}
         {(celula.bairro || celula.endereco_completo) && (
           <View style={styles.infoRow}>
             <MapPin size={13} color={theme.textMuted} strokeWidth={1.6} />

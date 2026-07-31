@@ -20,7 +20,7 @@ export async function createCelula(formData: FormData) {
   const { error } = await db.from('celulas').insert({
     tenant_id: profile.tenant_id,
     nome: formData.get('nome'),
-    lider_id: formData.get('lider_id') || null,
+    lider_nome: formData.get('lider_nome') || null,
     bairro: formData.get('bairro') || null,
     endereco_completo: formData.get('endereco_completo') || null,
     dia_semana: formData.get('dia_semana') || null,
@@ -37,7 +37,7 @@ export async function updateCelula(id: string, formData: FormData) {
   const db = createAdminClient();
   const { error } = await db.from('celulas').update({
     nome: formData.get('nome'),
-    lider_id: formData.get('lider_id') || null,
+    lider_nome: formData.get('lider_nome') || null,
     bairro: formData.get('bairro') || null,
     endereco_completo: formData.get('endereco_completo') || null,
     dia_semana: formData.get('dia_semana') || null,

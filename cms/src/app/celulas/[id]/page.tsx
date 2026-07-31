@@ -32,12 +32,6 @@ export default async function CelulaDetailPage({ params }: { params: Promise<{ i
     .eq('tenant_id', profile.tenant_id)
     .single();
 
-  const { data: lideres } = await db
-    .from('users')
-    .select('id, nome')
-    .eq('tenant_id', profile.tenant_id)
-    .eq('is_lider', true)
-    .order('nome');
 
   if (!celula) redirect('/celulas');
 
@@ -83,16 +77,12 @@ export default async function CelulaDetailPage({ params }: { params: Promise<{ i
             />
           </div>
           <div className="space-y-1.5">
-            <label className="block text-stone-400 text-xs font-medium uppercase tracking-wide">Líder</label>
-            <select
-              name="lider_id" defaultValue={celula.lider_id ?? ''}
+            <label className="block text-stone-400 text-xs font-medium uppercase tracking-wide">Nome do líder</label>
+            <input
+              name="lider_nome" defaultValue={celula.lider_nome ?? ''}
               className="w-full bg-stone-900 border border-stone-700 text-white rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-amber-500 transition-colors"
-            >
-              <option value="">Sem líder definido</option>
-              {(lideres ?? []).map((l) => (
-                <option key={l.id} value={l.id}>{l.nome}</option>
-              ))}
-            </select>
+              placeholder="Ex: João Silva"
+            />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">

@@ -97,6 +97,7 @@ export interface Celula {
   tenant_id: string;
   nome: string;
   lider_id: string | null;
+  lider_nome: string | null;
   endereco_completo: string | null;
   bairro: string | null;
   dia_semana: string | null;
