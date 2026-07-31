@@ -89,11 +89,9 @@ export default function ProfileScreen() {
           </View>
         </View>
 
-        {/* Meu(s) líder(es) — apenas membros */}
-        {profile?.role === 'member' && <LideresSelector />}
-
-        {/* Meus filhos — apenas membros aprovados */}
-        {profile?.role === 'member' && <FilhosSection />}
+        {/* Meu(s) líder(es) e filhos — membros e admins */}
+        {profile?.role !== 'visitor' && <LideresSelector />}
+        {profile?.role !== 'visitor' && <FilhosSection />}
 
         {/* Solicitação de membro (apenas visitantes) */}
         {profile?.role === 'visitor' && membershipStatus === 'none' && (
