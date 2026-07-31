@@ -1,8 +1,8 @@
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { useChurchTheme } from '@/theme/ChurchThemeProvider';
-import { MOCK_PALAVRAS } from '../comunidade/palavras';
+import { usePalavra } from '@/features/palavras/hooks/use-palavras';
 
 const DARK_BG = '#160A2E';
 const GOLD = '#C9A84C';
@@ -18,52 +18,48 @@ function formatDate(iso: string) {
 export default function PalavraDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const theme = useChurchTheme();
-  const palavra = MOCK_PALAVRAS.find((p) => p.id === id);
-
-  if (!palavra) return null;
+  const { data: palavra, isLoading } = usePalavra(id);
 
   return (
     <>
       <Stack.Screen
         options={{
           headerShown: true,
-          title: palavra.reference,
+          title: palavra?.versiculo ?? 'Palavra',
           headerStyle: { backgroundColor: DARK_BG },
           headerTintColor: '#FFFFFF',
           headerTitleStyle: { fontFamily: SERIF, fontSize: 15 },
         }}
       />
       <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]} edges={['bottom']}>
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
+        {isLoading || !palavra ? (
+          <ActivityIndicator color={GOLD} style={{ marginTop: 60 }} />
+        ) : (
+          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
 
-          {/* Cabeçalho da palavra */}
-          <View style={[styles.hero, { backgroundColor: DARK_BG }]}>
-            <Text style={[styles.reference, { color: GOLD }]}>{palavra.reference}</Text>
-            <Text style={[styles.title, { fontFamily: SERIF }]}>{palavra.title}</Text>
-            <View style={styles.metaRow}>
-              <View style={[styles.metaChip, { backgroundColor: 'rgba(255,255,255,0.08)' }]}>
-                <Text style={styles.metaText}>{palavra.preacher}</Text>
-              </View>
-              <View style={[styles.metaChip, { backgroundColor: 'rgba(255,255,255,0.08)' }]}>
-                <Text style={styles.metaText}>{formatDate(palavra.date)}</Text>
+            <View style={[styles.hero, { backgroundColor: DARK_BG }]}>
+              {palavra.versiculo && (
+                <Text style={[styles.reference, { color: GOLD }]}>{palavra.versiculo}</Text>
+              )}
+              <Text style={[styles.title, { fontFamily: SERIF }]}>{palavra.titulo}</Text>
+              <View style={styles.metaRow}>
+                {palavra.pregador && (
+                  <View style={[styles.metaChip, { backgroundColor: 'rgba(255,255,255,0.08)' }]}>
+                    <Text style={styles.metaText}>{palavra.pregador}</Text>
+                  </View>
+                )}
+                <View style={[styles.metaChip, { backgroundColor: 'rgba(255,255,255,0.08)' }]}>
+                  <Text style={styles.metaText}>{formatDate(palavra.data)}</Text>
+                </View>
               </View>
             </View>
-          </View>
 
-          {/* Resumo */}
-          <View style={[styles.summaryBox, { backgroundColor: theme.surface }]}>
-            <Text style={[styles.summaryLabel, { color: theme.goldText }]}>RESUMO</Text>
-            <Text style={[styles.summaryText, { color: theme.text, fontFamily: SERIF_REG }]}>
-              {palavra.summary}
+            <Text style={[styles.content, { color: theme.text, fontFamily: SERIF_REG }]}>
+              {palavra.texto}
             </Text>
-          </View>
 
-          {/* Conteúdo completo */}
-          <Text style={[styles.content, { color: theme.text }]}>
-            {palavra.content}
-          </Text>
-
-        </ScrollView>
+          </ScrollView>
+        )}
       </SafeAreaView>
     </>
   );
@@ -71,7 +67,7 @@ export default function PalavraDetailScreen() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
-  scroll: { paddingBottom: 60, gap: 0 },
+  scroll: { paddingBottom: 60 },
 
   hero: {
     padding: 24,
@@ -85,14 +81,5 @@ const styles = StyleSheet.create({
   metaChip: { borderRadius: 20, paddingHorizontal: 12, paddingVertical: 5 },
   metaText: { color: 'rgba(255,255,255,0.65)', fontSize: 12, fontWeight: '500' },
 
-  summaryBox: {
-    margin: 20,
-    borderRadius: 14,
-    padding: 16,
-    gap: 8,
-  },
-  summaryLabel: { fontSize: 10, fontWeight: '700', letterSpacing: 2 },
-  summaryText: { fontSize: 15, lineHeight: 23 },
-
-  content: { fontSize: 15, lineHeight: 26, paddingHorizontal: 20, paddingBottom: 20 },
+  content: { fontSize: 15, lineHeight: 26, padding: 20 },
 });

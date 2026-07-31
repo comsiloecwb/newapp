@@ -1,7 +1,9 @@
 import { redirect } from 'next/navigation';
+import { Suspense } from 'react';
 import { createClient } from '@/lib/supabase/server';
 import { getCmsBranding, getUserTenantBranding } from '@/lib/tenant';
 import { Sidebar } from '@/components/Sidebar';
+import { Toast } from '@/components/Toast';
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
@@ -31,6 +33,9 @@ export default async function DashboardLayout({ children }: { children: React.Re
       <main className="flex-1 overflow-auto">
         {children}
       </main>
+      <Suspense>
+        <Toast />
+      </Suspense>
     </div>
   );
 }

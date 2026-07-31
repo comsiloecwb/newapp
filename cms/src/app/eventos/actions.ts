@@ -20,7 +20,7 @@ export async function createEvento(formData: FormData) {
     : null;
 
   const db = createAdminClient();
-  const { data, error } = await db.from('eventos').insert({
+  const { error } = await db.from('eventos').insert({
     tenant_id: profile.tenant_id,
     titulo: formData.get('titulo'),
     descricao: formData.get('descricao') || null,
@@ -31,6 +31,7 @@ export async function createEvento(formData: FormData) {
     is_paid: formData.get('is_paid') === 'true',
     price_cents: priceCents,
     vagas_total: formData.get('vagas_total') ? parseInt(String(formData.get('vagas_total'))) : null,
+    vagas_alerta: formData.get('vagas_alerta') ? parseInt(String(formData.get('vagas_alerta'))) : null,
     published: formData.get('published') === 'true',
     created_by: user.id,
   }).select().single();
@@ -38,7 +39,7 @@ export async function createEvento(formData: FormData) {
   if (error) throw new Error(error.message);
 
   revalidatePath('/eventos');
-  redirect('/eventos');
+  redirect('/eventos?toast=criado');
 }
 
 export async function updateEvento(id: string, formData: FormData) {
@@ -61,18 +62,19 @@ export async function updateEvento(id: string, formData: FormData) {
     is_paid: formData.get('is_paid') === 'true',
     price_cents: priceCents,
     vagas_total: formData.get('vagas_total') ? parseInt(String(formData.get('vagas_total'))) : null,
+    vagas_alerta: formData.get('vagas_alerta') ? parseInt(String(formData.get('vagas_alerta'))) : null,
     published: formData.get('published') === 'true',
   }).eq('id', id);
 
   if (error) throw new Error(error.message);
 
   revalidatePath('/eventos');
-  redirect('/eventos');
+  redirect('/eventos?toast=atualizado');
 }
 
 export async function deleteEvento(id: string) {
   const db = createAdminClient();
   await db.from('eventos').delete().eq('id', id);
   revalidatePath('/eventos');
-  redirect('/eventos');
+  redirect('/eventos?toast=excluido');
 }

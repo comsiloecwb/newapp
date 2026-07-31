@@ -52,6 +52,9 @@ export default function RegisterScreen() {
       const { data: authData, error: signUpError } = await supabase.auth.signUp({
         email: email.trim().toLowerCase(),
         password,
+        options: {
+          emailRedirectTo: 'appigreja://auth/callback',
+        },
       });
 
       if (signUpError || !authData.user) {
@@ -59,8 +62,18 @@ export default function RegisterScreen() {
         return;
       }
 
-      // 2. Insere user com tenant_id hardcoded no build
-      const { data: newUser, error: userError } = await supabase
+      // Confirmação de email ativa: sem sessão ainda — perfil criado no callback
+      if (!authData.session) {
+        Alert.alert(
+          'Verifique seu e-mail',
+          `Enviamos um link de confirmação para ${email.trim()}. Clique nele para acessar o app.`,
+          [{ text: 'OK', onPress: () => router.replace('/(auth)/login') }],
+        );
+        return;
+      }
+
+      // Confirmação desativada: sessão já disponível — cria perfil agora
+      const { data: newUser } = await supabase
         .from('users')
         .insert({
           id: authData.user.id,
@@ -69,28 +82,19 @@ export default function RegisterScreen() {
           is_lider: false,
           nome: name.trim(),
           email: email.trim().toLowerCase(),
-          telefone: null,
           notify_new_events: true,
           notify_event_reminders: true,
         })
         .select()
         .single();
 
-      if (userError || !newUser) {
-        Alert.alert(
-          'Quase lá',
-          'Conta criada! Faça login para continuar.',
-          [{ text: 'OK', onPress: () => router.replace('/(auth)/login') }],
-        );
+      if (!newUser) {
+        router.replace('/(auth)/login');
         return;
       }
 
-      // 3. Busca o tenant para montar a sessão (agora tem user, RLS passa)
       const { data: tenant } = await supabase
-        .from('tenants')
-        .select('*')
-        .eq('id', CHURCH_ID)
-        .single();
+        .from('tenants').select('*').eq('id', CHURCH_ID).single();
 
       if (tenant) {
         setSession(newUser, tenant);

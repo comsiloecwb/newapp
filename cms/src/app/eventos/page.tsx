@@ -95,12 +95,21 @@ export default async function EventosPage() {
                   </span>
                 </td>
                 <td className="px-6 py-4">
-                  <Link
-                    href={`/eventos/${evento.id}`}
-                    className="text-amber-400 hover:text-amber-300 text-xs font-medium transition-colors"
-                  >
-                    Editar →
-                  </Link>
+                  <div className="flex items-center gap-3">
+                    <Link
+                      href={`/eventos/${evento.id}`}
+                      className="text-amber-400 hover:text-amber-300 text-xs font-medium transition-colors"
+                    >
+                      Editar
+                    </Link>
+                    <span className="text-stone-700">|</span>
+                    <Link
+                      href={`/eventos/${evento.id}/inscritos`}
+                      className="text-stone-400 hover:text-white text-xs font-medium transition-colors"
+                    >
+                      Inscritos
+                    </Link>
+                  </div>
                 </td>
               </tr>
             ))}
