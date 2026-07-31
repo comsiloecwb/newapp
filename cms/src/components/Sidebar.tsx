@@ -18,6 +18,7 @@ const adminLinks = [
   { href: '/eventos', label: 'Eventos', icon: '📅' },
   { href: '/membros', label: 'Membros', icon: '👥' },
   { href: '/palavras', label: 'Palavra', icon: '📖' },
+  { href: '/grupos', label: 'Grupos', icon: '🫂' },
   { href: '/celulas', label: 'Células', icon: '🏠' },
   { href: '/oracao', label: 'Oração', icon: '🙏' },
 ];
