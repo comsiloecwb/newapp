@@ -37,9 +37,16 @@ export default async function CelulaDetailPage({ params }: { params: Promise<{ i
 
   const { data: membros } = await db
     .from('membros_celula')
-    .select('id, status, created_at, user_id, users(nome, email)')
+    .select('id, status, created_at, user_id')
     .eq('celula_id', id)
     .order('created_at');
+
+  const userIds = (membros ?? []).map((m) => m.user_id);
+  const { data: usersData } = userIds.length > 0
+    ? await db.from('users').select('id, nome, email').in('id', userIds)
+    : { data: [] };
+
+  const userMap = Object.fromEntries((usersData ?? []).map((u) => [u.id, u]));
 
   const pendentes = membros?.filter((m) => m.status === 'pendente') ?? [];
   const aprovados = membros?.filter((m) => m.status === 'aprovado') ?? [];
@@ -140,7 +147,7 @@ export default async function CelulaDetailPage({ params }: { params: Promise<{ i
           </h2>
           <div className="space-y-3">
             {pendentes.map((m) => {
-              const u = m.users as unknown as { nome: string; email: string } | null;
+              const u = userMap[m.user_id] ?? null;
               const aprovar = aprovarMembro.bind(null, m.id, id);
               const rejeitar = rejeitarMembro.bind(null, m.id, id);
               return (
@@ -176,7 +183,7 @@ export default async function CelulaDetailPage({ params }: { params: Promise<{ i
         ) : (
           <div className="space-y-3">
             {aprovados.map((m) => {
-              const u = m.users as unknown as { nome: string; email: string } | null;
+              const u = userMap[m.user_id] ?? null;
               const rejeitar = rejeitarMembro.bind(null, m.id, id);
               return (
                 <div key={m.id} className="flex items-center justify-between gap-4">
