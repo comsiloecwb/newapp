@@ -15,7 +15,7 @@ export default async function GruposPage() {
   const db = createAdminClient();
   const { data: grupos } = await db
     .from('grupos')
-    .select('id, nome, created_at, membros_grupo(count)')
+    .select('id, nome, created_at')
     .eq('tenant_id', profile.tenant_id)
     .order('nome', { ascending: true });
 
@@ -48,28 +48,25 @@ export default async function GruposPage() {
             <thead>
               <tr className="border-b border-stone-700">
                 <th className="text-left text-stone-400 font-medium px-6 py-4">Nome</th>
-                <th className="text-left text-stone-400 font-medium px-6 py-4">Membros</th>
+                <th className="text-left text-stone-400 font-medium px-6 py-4">Criado em</th>
                 <th className="px-6 py-4" />
               </tr>
             </thead>
             <tbody>
-              {grupos.map((g) => {
-                const count = (g.membros_grupo as unknown as { count: number }[])?.[0]?.count ?? 0;
-                return (
-                  <tr key={g.id} className="border-b border-stone-700/50 hover:bg-stone-700/20 transition-colors">
-                    <td className="px-6 py-4 text-white font-medium">{g.nome}</td>
-                    <td className="px-6 py-4 text-stone-400">{count} {count === 1 ? 'membro' : 'membros'}</td>
-                    <td className="px-6 py-4 text-right">
-                      <Link
-                        href={`/grupos/${g.id}`}
-                        className="text-amber-400 hover:text-amber-300 text-xs font-medium transition-colors"
-                      >
-                        Gerenciar →
-                      </Link>
-                    </td>
-                  </tr>
-                );
-              })}
+              {grupos.map((g) => (
+                <tr key={g.id} className="border-b border-stone-700/50 hover:bg-stone-700/20 transition-colors">
+                  <td className="px-6 py-4 text-white font-medium">{g.nome}</td>
+                  <td className="px-6 py-4 text-stone-400">{new Date(g.created_at).toLocaleDateString('pt-BR')}</td>
+                  <td className="px-6 py-4 text-right">
+                    <Link
+                      href={`/grupos/${g.id}`}
+                      className="text-amber-400 hover:text-amber-300 text-xs font-medium transition-colors"
+                    >
+                      Ver →
+                    </Link>
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
