@@ -27,7 +27,7 @@ export default async function CelulaDetailPage({ params }: { params: Promise<{ i
 
   const { data: celula } = await db
     .from('celulas')
-    .select('*')
+    .select('id, nome, lider_nome, bairro, endereco_completo, dia_semana, horario, contato_telefone, tenant_id')
     .eq('id', id)
     .eq('tenant_id', profile.tenant_id)
     .single();
