@@ -1,5 +1,7 @@
 import { useCallback, useState } from 'react';
 import {
+  ActivityIndicator,
+  Alert,
   Modal,
   Platform,
   Pressable,
@@ -11,58 +13,112 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack } from 'expo-router';
-import { Heart, Lock, Plus, Users, X } from 'lucide-react-native';
+import { Lock, Plus, Trash2, Users, X } from 'lucide-react-native';
 import { useChurchTheme } from '@/theme/ChurchThemeProvider';
+import { useAuthStore } from '@/stores/auth-store';
+import {
+  usePedidosOracao,
+  useSubmitPedido,
+  useDeletePedido,
+  type PedidoRow,
+} from '@/features/oracao/hooks/use-pedidos-oracao';
 
 const DARK_BG = '#0A1628';
 const SERIF = 'PlayfairDisplay_500Medium';
 
 type Visibility = 'community' | 'leaders';
-type Prayer = {
-  id: string;
-  title: string;
-  author: string | null;
-  time: string;
-  likes: number;
-  liked: boolean;
-  visibility: Visibility;
-};
 
-const MOCK_PRAYERS: Prayer[] = [
-  { id: 'p1', title: 'Oração pela saúde da minha mãe', author: 'Ana Clara M.', time: 'há 2h', likes: 14, liked: false, visibility: 'community' },
-  { id: 'p2', title: 'Sabedoria para uma decisão profissional importante', author: null, time: 'há 5h', likes: 7, liked: false, visibility: 'community' },
-  { id: 'p3', title: 'Restauração do meu casamento', author: 'Pedro Lima', time: 'há 1 dia', likes: 23, liked: true, visibility: 'community' },
-];
+function timeAgo(iso: string): string {
+  const diff = Date.now() - new Date(iso).getTime();
+  const m = Math.floor(diff / 60000);
+  if (m < 1) return 'agora';
+  if (m < 60) return `há ${m}min`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `há ${h}h`;
+  const d = Math.floor(h / 24);
+  return `há ${d}d`;
+}
+
+function PrayerCard({
+  pedido,
+  isOwn,
+  onDelete,
+  theme,
+}: {
+  pedido: PedidoRow;
+  isOwn: boolean;
+  onDelete: () => void;
+  theme: ReturnType<typeof useChurchTheme>;
+}) {
+  return (
+    <View style={[styles.card, { backgroundColor: theme.surface }]}>
+      <View style={styles.cardBody}>
+        <Text style={[styles.cardTitle, { color: theme.text }]}>{pedido.texto}</Text>
+        <View style={styles.cardMeta}>
+          {pedido.is_lideranca_only && (
+            <Lock size={11} color={theme.textMuted} strokeWidth={1.6} style={{ marginRight: 4 }} />
+          )}
+          <Text style={[styles.cardAuthor, { color: theme.textMuted }]}>
+            {pedido.is_anonymous ? 'Anônimo' : (pedido.nome_autor ?? 'Membro')} · {timeAgo(pedido.created_at)}
+          </Text>
+        </View>
+      </View>
+      {isOwn && (
+        <Pressable onPress={onDelete} hitSlop={8} style={styles.deleteBtn}>
+          <Trash2 size={16} color={theme.textMuted} strokeWidth={1.6} />
+        </Pressable>
+      )}
+    </View>
+  );
+}
 
 export default function OracaoScreen() {
   const theme = useChurchTheme();
-  const [prayers, setPrayers] = useState<Prayer[]>(MOCK_PRAYERS);
+  const userId = useAuthStore((s) => s.user?.id);
   const [modalOpen, setModalOpen] = useState(false);
   const [text, setText] = useState('');
   const [visibility, setVisibility] = useState<Visibility>('community');
-  const [anonymous, setAnonymous] = useState(false);
 
-  const toggleLike = useCallback((id: string) => {
-    setPrayers((prev) =>
-      prev.map((p) =>
-        p.id === id ? { ...p, liked: !p.liked, likes: p.liked ? p.likes - 1 : p.likes + 1 } : p
-      )
-    );
-  }, []);
+  const { data: pedidos, isLoading } = usePedidosOracao();
+  const { mutate: submit, isPending: submitting } = useSubmitPedido();
+  const { mutate: deletePedido } = useDeletePedido();
+
+  function closeModal() {
+    setModalOpen(false);
+    setText('');
+    setVisibility('community');
+  }
 
   function submitPrayer() {
     if (!text.trim()) return;
-    setPrayers((prev) => [{
-      id: Date.now().toString(),
-      title: text.trim(),
-      author: anonymous ? null : 'Você',
-      time: 'agora',
-      likes: 0,
-      liked: false,
-      visibility,
-    }, ...prev]);
-    setText(''); setVisibility('community'); setAnonymous(false); setModalOpen(false);
+    submit(
+      {
+        texto: text.trim(),
+        is_lideranca_only: visibility === 'leaders',
+      },
+      {
+        onSuccess: closeModal,
+        onError: (e: any) => Alert.alert('Erro', e?.message ?? String(e)),
+      }
+    );
   }
+
+  const handleDelete = useCallback(
+    (pedido: PedidoRow) => {
+      Alert.alert('Excluir pedido', 'Deseja remover este pedido de oração?', [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Excluir',
+          style: 'destructive',
+          onPress: () =>
+            deletePedido(pedido.id, {
+              onError: (e: any) => Alert.alert('Erro', e?.message),
+            }),
+        },
+      ]);
+    },
+    [deletePedido]
+  );
 
   return (
     <>
@@ -88,18 +144,34 @@ export default function OracaoScreen() {
             </Pressable>
           </View>
 
-          {prayers.map((p) => (
-            <PrayerCard key={p.id} prayer={p} onToggle={toggleLike} theme={theme} />
-          ))}
+          {isLoading ? (
+            <ActivityIndicator color={theme.accent} style={{ marginTop: 40 }} />
+          ) : !pedidos?.length ? (
+            <View style={styles.empty}>
+              <Text style={[styles.emptyText, { color: theme.textMuted }]}>
+                Nenhum pedido ainda.{'\n'}Seja o primeiro a compartilhar.
+              </Text>
+            </View>
+          ) : (
+            pedidos.map((p) => (
+              <PrayerCard
+                key={p.id}
+                pedido={p}
+                isOwn={p.user_id === userId}
+                onDelete={() => handleDelete(p)}
+                theme={theme}
+              />
+            ))
+          )}
 
         </ScrollView>
       </SafeAreaView>
 
-      <Modal visible={modalOpen} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setModalOpen(false)}>
+      <Modal visible={modalOpen} animationType="slide" presentationStyle="pageSheet" onRequestClose={closeModal}>
         <View style={[styles.modal, { backgroundColor: theme.background }]}>
           <View style={styles.modalHeader}>
             <Text style={[styles.modalTitle, { color: theme.text, fontFamily: SERIF }]}>Novo Pedido</Text>
-            <Pressable onPress={() => setModalOpen(false)} hitSlop={8}>
+            <Pressable onPress={closeModal} hitSlop={8}>
               <X size={22} color={theme.textMuted} strokeWidth={1.6} />
             </Pressable>
           </View>
@@ -133,13 +205,6 @@ export default function OracaoScreen() {
             </Pressable>
           </View>
 
-          <Pressable style={styles.anonRow} onPress={() => setAnonymous((v) => !v)}>
-            <View style={[styles.checkbox, { borderColor: anonymous ? theme.goldText : theme.elevated, backgroundColor: anonymous ? theme.goldText : 'transparent' }]}>
-              {anonymous && <Text style={styles.checkmark}>✓</Text>}
-            </View>
-            <Text style={[styles.anonText, { color: theme.text }]}>Enviar como anônimo</Text>
-          </Pressable>
-
           {visibility === 'leaders' && (
             <View style={[styles.infoBox, { backgroundColor: theme.surface }]}>
               <Lock size={13} color={theme.textMuted} strokeWidth={1.6} style={{ marginTop: 2 }} />
@@ -150,33 +215,17 @@ export default function OracaoScreen() {
           )}
 
           <Pressable
-            style={[styles.submitBtn, { backgroundColor: text.trim() ? DARK_BG : theme.elevated }]}
+            style={[styles.submitBtn, { backgroundColor: text.trim() && !submitting ? DARK_BG : theme.elevated }]}
             onPress={submitPrayer}
-            disabled={!text.trim()}
+            disabled={!text.trim() || submitting}
           >
-            <Text style={[styles.submitText, { color: text.trim() ? '#fff' : theme.textMuted }]}>Enviar Pedido</Text>
+            <Text style={[styles.submitText, { color: text.trim() && !submitting ? '#fff' : theme.textMuted }]}>
+              {submitting ? 'Enviando...' : 'Enviar Pedido'}
+            </Text>
           </Pressable>
         </View>
       </Modal>
     </>
-  );
-}
-
-function PrayerCard({ prayer, onToggle, theme }: { prayer: Prayer; onToggle: (id: string) => void; theme: ReturnType<typeof useChurchTheme> }) {
-  return (
-    <View style={[styles.card, { backgroundColor: theme.surface }]}>
-      <View style={styles.cardBody}>
-        <Text style={[styles.cardTitle, { color: theme.text }]}>{prayer.title}</Text>
-        <View style={styles.cardMeta}>
-          {prayer.visibility === 'leaders' && <Lock size={11} color={theme.textMuted} strokeWidth={1.6} style={{ marginRight: 4 }} />}
-          <Text style={[styles.cardAuthor, { color: theme.textMuted }]}>{prayer.author ?? 'Anônimo'} · {prayer.time}</Text>
-        </View>
-      </View>
-      <Pressable onPress={() => onToggle(prayer.id)} style={styles.likeBtn} hitSlop={8}>
-        <Heart size={17} color={prayer.liked ? theme.goldText : theme.textMuted} fill={prayer.liked ? theme.goldText : 'transparent'} strokeWidth={1.6} />
-        <Text style={[styles.likeCount, { color: prayer.liked ? theme.goldText : theme.textMuted }]}>{prayer.likes}</Text>
-      </Pressable>
-    </View>
   );
 }
 
@@ -189,6 +238,9 @@ const styles = StyleSheet.create({
   addBtn: { flexDirection: 'row', alignItems: 'center', gap: 5, borderWidth: 1, borderRadius: 20, paddingHorizontal: 12, paddingVertical: 6 },
   addBtnText: { fontSize: 13, fontWeight: '600' },
 
+  empty: { alignItems: 'center', paddingTop: 40 },
+  emptyText: { textAlign: 'center', fontSize: 14, lineHeight: 21 },
+
   card: {
     borderRadius: 12, padding: 16, flexDirection: 'row', alignItems: 'center', gap: 12,
     ...Platform.select({
@@ -200,8 +252,7 @@ const styles = StyleSheet.create({
   cardTitle: { fontSize: 14, fontWeight: '500', lineHeight: 20 },
   cardMeta: { flexDirection: 'row', alignItems: 'center' },
   cardAuthor: { fontSize: 12 },
-  likeBtn: { alignItems: 'center', gap: 3 },
-  likeCount: { fontSize: 11, fontWeight: '600' },
+  deleteBtn: { padding: 4 },
 
   modal: { flex: 1, padding: 24, gap: 16 },
   modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
@@ -211,10 +262,6 @@ const styles = StyleSheet.create({
   optionRow: { flexDirection: 'row', gap: 12 },
   optionBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, borderWidth: 1.5, borderRadius: 10, paddingVertical: 12 },
   optionBtnText: { fontSize: 13, fontWeight: '600' },
-  anonRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  checkbox: { width: 20, height: 20, borderRadius: 5, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
-  checkmark: { color: '#fff', fontSize: 12, fontWeight: '700' },
-  anonText: { fontSize: 14 },
   infoBox: { borderRadius: 10, padding: 12, flexDirection: 'row', alignItems: 'flex-start', gap: 8 },
   infoText: { flex: 1, fontSize: 13, lineHeight: 19 },
   submitBtn: { borderRadius: 12, padding: 16, alignItems: 'center', marginTop: 4 },
