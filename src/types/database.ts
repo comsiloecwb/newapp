@@ -138,13 +138,24 @@ export interface Grupo {
   id: string;
   tenant_id: string;
   nome: string;
+  invite_code: string;
+  created_by: string | null;
   created_at: string;
 }
 
 export interface MembroGrupo {
   grupo_id: string;
   user_id: string;
+  role: 'admin' | 'membro';
   joined_at: string;
+}
+
+export interface MensagemGrupo {
+  id: string;
+  grupo_id: string;
+  user_id: string;
+  text: string;
+  created_at: string;
 }
 
 export interface InAppNotification {

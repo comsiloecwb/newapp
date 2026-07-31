@@ -100,6 +100,7 @@ export function ModalAdicionarFilho({ visible, filho, isSaving, onClose, onSave 
             display={Platform.OS === 'ios' ? 'spinner' : 'default'}
             maximumDate={new Date()}
             onChange={handleDateChange}
+            locale="pt-BR"
           />
         )}
 

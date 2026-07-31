@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { isSupabaseConfigured, supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/stores/auth-store';
@@ -6,11 +6,8 @@ import type { Grupo, User } from '@/types/database';
 
 export type GrupoMembro = Pick<User, 'id' | 'nome' | 'email'>;
 
-// A visibilidade é garantida pela RLS (grupos.select filtra por membros_grupo.user_id = auth.uid()),
-// então a query no cliente é um select simples — não há como (nem necessidade de) repetir o filtro aqui.
 export function useGrupos() {
   const userId = useAuthStore((s) => s.user?.id);
-
   return useQuery({
     queryKey: ['grupos', userId],
     enabled: Boolean(userId) && isSupabaseConfigured,
@@ -55,5 +52,46 @@ export function useGrupoMembros(id: string | undefined) {
       if (membrosError) throw membrosError;
       return (membros ?? []) as GrupoMembro[];
     },
+  });
+}
+
+export function useCreateGrupo() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (nome: string): Promise<Grupo> => {
+      const { data, error } = await supabase.rpc('create_grupo', { p_nome: nome });
+      if (error) throw error;
+      return data as Grupo;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['grupos'] }),
+  });
+}
+
+export function useJoinGrupo() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (inviteCode: string): Promise<Grupo> => {
+      const { data, error } = await supabase.rpc('join_grupo_by_invite_code', { p_invite_code: inviteCode });
+      if (error) throw error;
+      return data as Grupo;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['grupos'] }),
+  });
+}
+
+export function useLeaveGrupo(grupoId: string) {
+  const qc = useQueryClient();
+  const userId = useAuthStore((s) => s.user?.id);
+  return useMutation({
+    mutationFn: async () => {
+      if (!userId) throw new Error('Não autenticado');
+      const { error } = await supabase
+        .from('membros_grupo')
+        .delete()
+        .eq('grupo_id', grupoId)
+        .eq('user_id', userId);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['grupos'] }),
   });
 }
